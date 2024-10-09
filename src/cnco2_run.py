@@ -27,8 +27,17 @@ Program Structures
 	. sample_time		datetime
 	. sample_value		decimal
 	. sample_status		int
+	
+	Sample Status
+		0 Success
+		1 Value out of bounds
+		2 Other Warning
+		10 Could not read
+		11 Other Fatal
 
 Program Logic:
+
+	ASSUME: Gantry moves are relative, not absolute
 
 	Create execution plan for each sample set
 		Build 2 Dimensional array
@@ -43,7 +52,5 @@ Program Logic:
 				_sensor_sample
 				Evaluate sampling response (ok, error, warn)
 				record execution element
-
-
 """
 
