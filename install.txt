@@ -1,0 +1,5 @@
+- Raspberry Pi OS
+- cutecom (optional)
+- sqlite3
+- apache2
+- php
