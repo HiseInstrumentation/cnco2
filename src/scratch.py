@@ -1,5 +1,6 @@
 import serial
 import time
+
 serial_port = "/dev/ttyUSB0"
 baud_rate = 115200
 ser = serial.Serial(serial_port, baud_rate)
