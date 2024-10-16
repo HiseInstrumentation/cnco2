@@ -40,7 +40,7 @@ Program Structures
 
 Program Logic:
 
-	ASSUME: Gantry moves are relative, not absolute
+	# ASSUME: Gantry moves are absolute
 
 	Load details on sample set from DB (ie, how many, what their home x,y are)
 

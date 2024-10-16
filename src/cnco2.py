@@ -25,7 +25,7 @@ class SampleSet:
         self.rowCount = row_count
 
     def initializePlan(self):
-        self
+        self    
         # Loop through all rows
         #   Loop through all cols
         #       Create new SampleUnit
@@ -45,3 +45,16 @@ class System:
     # that we know that we should stop executing.
     def isRunning():
         print("System is running")
+
+class Gantry:
+    def goHome():
+        x=1
+    
+    def connect():
+        x=1
+        
+    def initialize(self)
+        self.connect()
+        self.goHome()
+        
+    
