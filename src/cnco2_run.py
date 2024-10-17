@@ -37,32 +37,37 @@ Program Structures
 		2 Other Warning
 		10 Could not read
 		11 Other Fatal
-
-Program Logic:
-
-	# ASSUME: Gantry moves are absolute
-
-	Load details on sample set from DB (ie, how many, what their home x,y are)
-
-	Create execution plan for each sample set
-		Build 2 Dimensional array
-		Each element has a status structure
-		Initialize each element
-
-	Initialize Gear
-		Connect to COM for gantry
-		Connect to COM for sensor
-
-	For each sample set
-	_gantry_home_
-		For each row
-			For each column
-				if cnco2.System.isRunning():
-					_gantry_move_x_y (should be 0,0 for first "cell")
-					_sensor_sample
-					Evaluate sampling response (ok, error, warn)
-					record execution element
 """
 import cnco2
 
 cnco2.getAbout()
+
+# ASSUME: Gantry moves are absolute
+
+# Load details on sample set from DB (ie, how many, what their home x,y are)
+
+# Create execution plan for each sample set
+#	Build list	
+#	Each element has a status structure
+#	Initialize each element
+
+# Initialize Gear
+#	Connect to COM for gantry
+	gantry = new Gantry()
+	gantry.initialize('/dev/ttyUSB0', 115200)
+	
+#	Connect to COM for sensor
+	o2 = new O2Sensor()
+	o2.initialize()
+	
+# For each sample set
+# _gantry_home_
+#	For each row
+#		For each column
+#			if cnco2.System.isRunning():
+#				_gantry_move_x_y (should be 0,0 for first "cell")
+#				_sensor_sample
+#				Evaluate sampling response (ok, error, warn)
+#				record execution element
+
+
