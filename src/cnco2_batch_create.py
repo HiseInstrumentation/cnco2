@@ -1,18 +1,11 @@
 import cnco2
 import sys
+import sqlite3
 
 cnco2.getAbout()
 
 batch_template_id = sys.argv[1]
 
-# Connect to DB
+new_batch_key = cnco2.BatchRuns.createFromTemplate(batch_template_id)
 
-# Get batch template for this template_id
-
-# Create new batch and copy template values
-
-# Get sample_set template associated with this batch template
-
-# Create new sample sets and copy template values
-
-# Return new batch access key		
+print("New Batch Key: " + new_batch_key)

@@ -6,15 +6,30 @@
     Purpose:
     Library for main CNCO2 components
 '''
-def getAbout():
-    print("#############################")
-    print("##   CNCO2 V0.1            ##")
-    print("##   Griffin Lab, 2024     ##")
-    print("#############################")
+import sqlite3
+
 
 class BatchRuns:
     def createFromTemplate(template_access_key):
-        return 1
+        # Connect to DB
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        # Get batch template for this template_id
+        cur = con.cursor()
+        res = cur.execute("select * from template_batch where access_key = '"+template_access_key+"'").fetchone()
+        print(res['description'])
+        
+        res = cur.execute("select * from template_sample_set where t_batch_access_key = '"+template_access_key+"'").fetchall()
+        for tss in res:
+            print(tss['name'])
+        
+        # Create new batch and copy template values
+        # Get sample_set template associated with this batch template
+        # Create new sample sets and copy template values
+        con.close()
+        # Return new batch access key
+        return "NEW_BATCH_KEY"		
+
 
 class BatchRun:
     accessKey = ""
@@ -111,3 +126,10 @@ class O2Sensor:
             
     def getReading():
         return 1
+
+
+def getAbout():
+    print("#############################")
+    print("##   CNCO2 V0.1            ##")
+    print("##   Griffin Lab, 2024     ##")
+    print("#############################")
