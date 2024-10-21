@@ -13,6 +13,7 @@ import time
 
 class BatchRuns:
     def createFromTemplate(template_access_key):
+        # Needed for the new batch access key
         seed = str(round(time.time() * 1000))
         b_seed = hashlib.md5(seed.encode('utf-8'))
         
@@ -24,18 +25,32 @@ class BatchRuns:
         cur = con.cursor()
         res = cur.execute("select * from template_batch where access_key = '"+template_access_key+"'").fetchone()
         new_description = res['description']
-        new_name = res['name']
-        
+        new_name = res['name']        
         new_access_key = b_seed.hexdigest()
         
+        # Create new batch db record from template values
+        cur1 = con.cursor()
+        res = cur1.execute("insert into batch (created, access_key, name, description) values (datetime('now', 'localtime'), '"+new_access_key+"', '"+new_name+"', '"+new_description+"')")
+        con.commit()
+
+        # Get sample set templates
         res = cur.execute("select * from template_sample_set where t_batch_access_key = '"+template_access_key+"'").fetchall()
+
+        # Create new sample sets based on templates
         for tss in res:
-            print(tss['name'])
-        
-        # Create new batch and copy template values
-        # Get sample_set template associated with this batch template
-        # Create new sample sets and copy template values
+            new_name = tss['name']
+            new_home_x = tss['home_x']
+            new_home_y = tss['home_y']
+            new_row_count = tss['row_count']
+            new_col_count = tss['col_count']
+            new_row_spacing = tss['row_spacing']
+            new_col_spacing = tss['col_spacing']
+
+            cur.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+")")
+            con.commit()
+
         con.close()
+
         # Return new batch access key
         return new_access_key		
         
