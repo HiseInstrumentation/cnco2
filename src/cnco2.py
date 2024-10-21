@@ -7,17 +7,26 @@
     Library for main CNCO2 components
 '''
 import sqlite3
+import hashlib
+import time
 
 
 class BatchRuns:
     def createFromTemplate(template_access_key):
+        seed = str(round(time.time() * 1000))
+        b_seed = hashlib.md5(seed.encode('utf-8'))
+        
         # Connect to DB
         con = sqlite3.connect("cnco2.db")
         con.row_factory = sqlite3.Row
+        
         # Get batch template for this template_id
         cur = con.cursor()
         res = cur.execute("select * from template_batch where access_key = '"+template_access_key+"'").fetchone()
-        print(res['description'])
+        new_description = res['description']
+        new_name = res['name']
+        
+        new_access_key = b_seed.hexdigest()
         
         res = cur.execute("select * from template_sample_set where t_batch_access_key = '"+template_access_key+"'").fetchall()
         for tss in res:
@@ -28,8 +37,10 @@ class BatchRuns:
         # Create new sample sets and copy template values
         con.close()
         # Return new batch access key
-        return "NEW_BATCH_KEY"		
-
+        return new_access_key		
+        
+    def getByAccessKey(self, access_key):
+        self
 
 class BatchRun:
     accessKey = ""
@@ -40,7 +51,34 @@ class BatchRun:
     def addSampleSet(self, sample_set):
         self.sampleSets.append(sample_set)
 
+class SampleSets:
+    def getByBatchAccessKey(self, batch_access_key):
+        sample_sets = []
+        
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+        
+        res = cur.execute("select * from sample_set where batch_access_key = '"+batch_access_key+"'").fetchall()
+        
+        for ss in res:
+            temp_sample_set = SampleSet()
+            temp_sample_set.name = res['name']
+            temp_sample_set.batchAccessKey = batch_access_key
+            temp_sample_set.homeX = res['home_x']
+            temp_sample_set.homeY = res['home_y']
+            temp_sample_set.rowCount = res['row_count']
+            temp_sample_set.colCount = res['col_count']
+            temp_sample_set.rowSpacing = res['row_spacing']
+            temp_sample_set.colSpacing = res['col_spacing']
+            
+            sample_sets.append(temp_sample_set)
+        
+        return sampe_sets
+
 class SampleSet:
+    batchAccessKey = ""
+    name = ""
     homeX = 0
     homeY = 0
     colCount = 0
@@ -56,7 +94,7 @@ class SampleSet:
         self.rowCount = row_count
 
     def initializePlan(self):
-        self    
+        self   
         # Loop through all rows
         #   Loop through all cols
         #       Create new SampleUnit
