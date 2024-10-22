@@ -9,6 +9,9 @@
 import sqlite3
 import hashlib
 import time
+import serial
+
+
 
 
 class BatchRuns:
@@ -153,15 +156,15 @@ class Gantry:
         commands.append(b'G21\n')    # Metric mm
         commands.append(b'G90\n')    # Absolute mode
         
-        self.runCommands(command)
+        self.runCommands(commands)
         
     def runCommands(self, commands):
         for c in commands:
             print(c)
             self.gantry_serial.write(c)
-            time.sleep(2)
+            time.sleep(1)
             print(self.gantry_serial.read_all().decode('utf-8'))
-            time.sleep(4)
+            time.sleep(2)
         
     def moveTo(self, x, y):
         commands = []
@@ -170,15 +173,59 @@ class Gantry:
         
     def initialize(self, serial_port, baud_rate):
         self.connect(serial_port, baud_rate)
-        self.goHome()
+        #self.goHome()
+        
+class O2SensorReading:
+    o2_pct = ""
+    temp = ""
+    pressure = ""
+    status = "Initialized"
+    
+    def __init__(self):
+        self.o2 = 0.0
+        self.temp = 0.0
+        self.pressure = 0.0
+        self.status = "Initialized"
+    
         
 class O2Sensor:
+    sensor_serial = ""
     
-    def initialize():
-        return 1
+    def initialize(self, serial_port, baud_rate):
+        self.connect(serial_port, baud_rate)
+        
+    def connect(self, serial_port, baud_rate):
+        self.sensor_serial = serial.Serial(serial_port, baud_rate)
+
+    def getReading(self):
+        return_value = O2SensorReading()
+        
+        commands = []
+        commands.append(b'M\n')
+        return_str = self.runCommands(commands)
+        
+        if(return_str[0][:10] == "Low signal"):
+            return_value.status = "Low Signal"
+        else:
+            vals = return_str[0].split(",")
+            print(vals)
+            return_value.o2 = vals[0][:4]
+            return_value.temp = vals[1][:4]
+            return_value.pressure = vals[2][:4]
+            return_value.status = "O2 Read Successful"
             
-    def getReading():
-        return 1
+        return return_value
+        
+    def runCommands(self, commands):
+        return_values = []
+        for c in commands:
+            self.sensor_serial.write(c)
+            time.sleep(2)
+            return_values.append(self.sensor_serial.read_all().decode('utf-8'))
+            time.sleep(2)
+
+    
+        return return_values
 
 
 def getAbout():

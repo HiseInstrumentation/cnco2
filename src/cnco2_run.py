@@ -40,6 +40,8 @@ Program Structures
 """
 import cnco2
 
+
+    
 cnco2.getAbout()
 
 # ASSUME: Gantry moves are absolute
@@ -53,13 +55,14 @@ cnco2.getAbout()
 
 # Initialize Gear
 #	Connect to COM for gantry
-	gantry = new Gantry()
-	gantry.initialize('/dev/ttyUSB0', 115200)
+
+gantry = cnco2.Gantry()
+gantry.initialize('/dev/ttyUSB0', 115200)
 	
 #	Connect to COM for sensor
-	o2 = new O2Sensor()
-	o2.initialize()
-	
+o2 = cnco2.O2Sensor()
+o2.initialize('/dev/ttyUSB1', 19200)
+
 # For each sample set
 # _gantry_home_
 #	For each row
