@@ -41,28 +41,31 @@ Program Structures
 import cnco2
 cnco2.getAbout()
 
-# Load details on sample set from DB (ie, how many, what their home x,y are)
-batch_access_key = sys.argv[1]
-
-batch = BatchRuns().getByAccessKey(batch_access_key)
-
-for (sample_set in batch.sampleSets):
-	sample_set.initializePlan()
-
-gantry = cnco2.Gantry()
-gantry.initialize('/dev/ttyUSB0', 115200)
+if __name__ == '__main__':
+	cnco2.getAbout()
 	
-#	Connect to COM for sensor
-o2 = cnco2.O2Sensor()
-o2.initialize('/dev/ttyUSB1', 19200)
+	# Load details on sample set from DB (ie, how many, what their home x,y are)
+	batch_access_key = sys.argv[1]
 
-# For each sample set
-#	For each row
-#		For each column
-#			if cnco2.System.isRunning():
-#				_gantry_move_x_y (should be 0,0 for first "cell")
-#				_sensor_sample
-#				Evaluate sampling response (ok, error, warn)
-#				record execution element
+	batch = BatchRuns().getByAccessKey(batch_access_key)
+
+	for (sample_set in batch.sampleSets):
+		sample_set.initializePlan()
+
+	gantry = cnco2.Gantry()
+	gantry.initialize('/dev/ttyUSB0', 115200)
+		
+	#	Connect to COM for sensor
+	o2 = cnco2.O2Sensor()
+	o2.initialize('/dev/ttyUSB1', 19200)
+
+	# For each sample set
+	#	For each row
+	#		For each column
+	#			if cnco2.System.isRunning():
+	#				_gantry_move_x_y (should be 0,0 for first "cell")
+	#				_sensor_sample
+	#				Evaluate sampling response (ok, error, warn)
+	#				record execution element
 
 
