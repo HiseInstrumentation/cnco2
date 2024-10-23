@@ -9,6 +9,7 @@
 import sqlite3
 import hashlib
 import time
+from time import localtime, strftime
 import serial
 
 
@@ -58,6 +59,9 @@ class BatchRuns:
         return new_access_key		
         
     def getByAccessKey(self, access_key):
+        # Create BatchRun object
+        # Get all associated sample sets and add to batch run
+        # Return batch run
         self
 
 class BatchRun:
@@ -227,9 +231,24 @@ class O2Sensor:
     
         return return_values
 
+class Logging:
+    
+    def write(message, echo = False ):
+        pre_time = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+        log_file = open('cnco2_log.txt', 'a')
+        log_file.write(pre_time+": " + message+"\n")
+        if(echo == True):
+            print(message)
+        log_file.close()
+        
+    def read():
+        log_file = open('cnco2_log.txt', 'r')
+        print(log_file.read())
+        log_file.close()
+    
 
 def getAbout():
-    print("#############################")
-    print("##   CNCO2 V0.1            ##")
-    print("##   Griffin Lab, 2024     ##")
-    print("#############################")
+    print("#######################################################")
+    print("##   CNCO2 V0.1                                      ##")
+    print("##   Griffin Lab, 2024                               ##")
+    print("#######################################################")

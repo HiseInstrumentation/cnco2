@@ -39,14 +39,17 @@ Program Structures
 		11 Other Fatal
 """
 import cnco2
-
-
-    
 cnco2.getAbout()
 
-# ASSUME: Gantry moves are absolute
-
 # Load details on sample set from DB (ie, how many, what their home x,y are)
+batch_access_key = sys.argv[1]
+
+batch = BatchRuns().getByAccessKey(batch_access_key)
+
+for (sample_set in batch.sampleSets):
+	sample_set.initialize()
+
+
 
 # Create execution plan for each sample set
 #	Build list	
@@ -64,7 +67,6 @@ o2 = cnco2.O2Sensor()
 o2.initialize('/dev/ttyUSB1', 19200)
 
 # For each sample set
-# _gantry_home_
 #	For each row
 #		For each column
 #			if cnco2.System.isRunning():
