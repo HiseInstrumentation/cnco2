@@ -143,15 +143,15 @@ class SampleSet:
     colSpacing = 0
     execPlan = []
 
-
     def initializePlan(self):
-        self   
-        # Loop through all rows
-        #   Loop through all cols
-        #       Create new SampleUnit
-        #       Calculate absolute x,y based on gantry dimensions
-        #       Add to execPlan list
-
+        self.execPlan = []
+        for row in range(self.rowCount):
+            for col in range(self.colCount):
+                t_ss = SampleUnit()
+                t_ss.x = (col * self.colSpacing) + self.homeX
+                t_ss.y = (row * self.rowSpacing) + self.homeY
+                self.execPlan.append(t_ss)
+ 
 class SampleUnit:
     x = 0
     y = 0

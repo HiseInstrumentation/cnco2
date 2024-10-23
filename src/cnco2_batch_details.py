@@ -16,6 +16,7 @@ if __name__ == '__main__':
 		print("Batch: ")
 		print(batch.name)
 		print(batch.description)
+		print(batch.created)
 		print("")
 		print("Sample Sets")
 		for ss in batch.sampleSets:
@@ -27,6 +28,9 @@ if __name__ == '__main__':
 			print("\tCols: " + str(ss.colCount))
 			print("\tRow Spacing: " + str(ss.rowSpacing))
 			print("\tCol Spacing: " + str(ss.colSpacing))
+			ss.initializePlan()
+			for ssu in ss.execPlan:
+				print("\t\tPOS: " + str(ssu.x) + "," + str(ssu.y) )
 	else:
 		print("All Batches")
 		batch_list = cnco2.BatchRuns().getAll()
