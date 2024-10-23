@@ -164,7 +164,24 @@ class System:
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
     def isRunning():
-        print("System is running")
+        return True
+
+    def start(self):
+        self
+        
+    def stop(self):
+        self
+
+class Storage:
+    def write(self, batch_access_key, x_pos, y_pos, o2_val, temp_val, pressure_val, status):
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        sql = "insert into sample_store values ('"+batch_access_key+"', "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', '"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
+        cur.execute(sql)
+        con.commit()
+        
 
 class Gantry:
     gantry_serial = ""
@@ -181,7 +198,7 @@ class Gantry:
     
     def connect(self, serial_port, baud_rate):
         self.gantry_serial = serial.Serial(serial_port, baud_rate)
-        time.sleep(2)
+        time.sleep(3)
         commands = []
         commands.append(b'$5=0\n')   # Treat switches as normally open
         commands.append(b'$21=1\n')  # Enable physical limit switches
@@ -197,16 +214,16 @@ class Gantry:
             self.gantry_serial.write(c)
             time.sleep(1)
             print(self.gantry_serial.read_all().decode('utf-8'))
-            time.sleep(2)
+            time.sleep(1)
         
     def moveTo(self, x, y):
         commands = []
-        commands.append(b'G00 X'+x+' Y'+y+'\n')
+        commands.append(bytes('G00 X'+str(x)+' Y'+str(y)+'\n', 'utf-8'))
         self.runCommands(commands)
         
     def initialize(self, serial_port, baud_rate):
         self.connect(serial_port, baud_rate)
-        #self.goHome()
+        #self.goHome() #REMOVE
         
 class O2SensorReading:
     o2_pct = ""
@@ -219,7 +236,7 @@ class O2SensorReading:
         self.temp = 0.0
         self.pressure = 0.0
         self.status = "Initialized"
-    
+        
         
 class O2Sensor:
     sensor_serial = ""
@@ -233,20 +250,20 @@ class O2Sensor:
     def getReading(self):
         return_value = O2SensorReading()
         
-        commands = []
-        commands.append(b'M\n')
-        return_str = self.runCommands(commands)
-        
+        self.sensor_serial.write(b'M\n')
+        time.sleep(2)
+        return_str = self.sensor_serial.read_all().decode('utf-8')
+        print("RETURN: ")
+        print(return_str)
         if(return_str[0][:10] == "Low signal"):
             return_value.status = "Low Signal"
         else:
-            vals = return_str[0].split(",")
-            print(vals)
+            vals = return_str.split(",")
             return_value.o2 = vals[0][:4]
             return_value.temp = vals[1][:4]
             return_value.pressure = vals[2][:4]
             return_value.status = "O2 Read Successful"
-            
+
         return return_value
         
     def runCommands(self, commands):

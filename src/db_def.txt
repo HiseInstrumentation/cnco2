@@ -28,3 +28,13 @@ insert into template_sample_set values
 	('TEMPLATE01', 'Temp 3', 70,70,4,4,1.5, 2.0),
 	('TEMPLATE01', 'Temp 4', 100,100,4,4,1.5, 2.0);
 
+create table sample_store (
+	batch_access_key TEXT,
+	x_pos REAL,
+	y_pos REAL,
+	o2_value REAL,
+	temp_value REAL,
+	pressure_value REAL,
+	status REAL,
+	collected TEXT
+	);

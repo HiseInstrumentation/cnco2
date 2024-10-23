@@ -39,17 +39,22 @@ Program Structures
 		11 Other Fatal
 """
 import cnco2
-cnco2.getAbout()
+import sys
 
 if __name__ == '__main__':
 	cnco2.getAbout()
 	
-	# Load details on sample set from DB (ie, how many, what their home x,y are)
+	try:
+		batch_access_key = sys.argv[1]
+	except IndexError:
+		batch_access_key = print("No Batch Access Key Specificed")
+		sys.exit()
+	
 	batch_access_key = sys.argv[1]
+	
+	batch = cnco2.BatchRuns().getByAccessKey(batch_access_key)
 
-	batch = BatchRuns().getByAccessKey(batch_access_key)
-
-	for (sample_set in batch.sampleSets):
+	for sample_set in batch.sampleSets:
 		sample_set.initializePlan()
 
 	gantry = cnco2.Gantry()
@@ -60,12 +65,13 @@ if __name__ == '__main__':
 	o2.initialize('/dev/ttyUSB1', 19200)
 
 	# For each sample set
-	#	For each row
-	#		For each column
-	#			if cnco2.System.isRunning():
-	#				_gantry_move_x_y (should be 0,0 for first "cell")
-	#				_sensor_sample
-	#				Evaluate sampling response (ok, error, warn)
-	#				record execution element
-
+	for ss in batch.sampleSets:
+		for su in ss.execPlan:
+			print("Sampling: " + str(su.x) + "," + str(su.y))
+			if cnco2.System.isRunning():
+				gantry.moveTo(su.x, su.y)
+				reading = o2.getReading()
+				print("\t"+reading.status)
+				cnco2.Storage().write(batch_access_key, su.x, su.y, reading.o2, reading.temp, reading.pressure, reading.status)
+				
 
