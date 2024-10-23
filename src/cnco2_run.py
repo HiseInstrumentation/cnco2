@@ -47,17 +47,7 @@ batch_access_key = sys.argv[1]
 batch = BatchRuns().getByAccessKey(batch_access_key)
 
 for (sample_set in batch.sampleSets):
-	sample_set.initialize()
-
-
-
-# Create execution plan for each sample set
-#	Build list	
-#	Each element has a status structure
-#	Initialize each element
-
-# Initialize Gear
-#	Connect to COM for gantry
+	sample_set.initializePlan()
 
 gantry = cnco2.Gantry()
 gantry.initialize('/dev/ttyUSB0', 115200)

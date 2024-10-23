@@ -59,10 +59,23 @@ class BatchRuns:
         return new_access_key		
         
     def getByAccessKey(self, access_key):
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        res = cur.execute("select * from batch where access_key = '"+access_key+"'").fetchone()
+
         # Create BatchRun object
+        batch = BatchRun()
+        batch.accessKey = access_key
+        batch.name = res['name']
+        batch.description = res['description']
+        
         # Get all associated sample sets and add to batch run
+        batch.sampleSets = SampleSets().getByBatchAccessKey(access_key)
+        
         # Return batch run
-        self
+        return batch
 
 class BatchRun:
     accessKey = ""
@@ -85,18 +98,18 @@ class SampleSets:
         
         for ss in res:
             temp_sample_set = SampleSet()
-            temp_sample_set.name = res['name']
+            temp_sample_set.name = ss['name']
             temp_sample_set.batchAccessKey = batch_access_key
-            temp_sample_set.homeX = res['home_x']
-            temp_sample_set.homeY = res['home_y']
-            temp_sample_set.rowCount = res['row_count']
-            temp_sample_set.colCount = res['col_count']
-            temp_sample_set.rowSpacing = res['row_spacing']
-            temp_sample_set.colSpacing = res['col_spacing']
+            temp_sample_set.homeX = ss['home_x']
+            temp_sample_set.homeY = ss['home_y']
+            temp_sample_set.rowCount = ss['row_count']
+            temp_sample_set.colCount = ss['col_count']
+            temp_sample_set.rowSpacing = ss['row_spacing']
+            temp_sample_set.colSpacing = ss['col_spacing']
             
             sample_sets.append(temp_sample_set)
         
-        return sampe_sets
+        return sample_sets
 
 class SampleSet:
     batchAccessKey = ""
@@ -109,11 +122,6 @@ class SampleSet:
     colSpacing = 0
     execPlan = []
 
-    def __init__(self, home_x, home_y, col_count, row_count):
-        self.homeX = home_x
-        self.homeY = home_y
-        self.colCount = col_count
-        self.rowCount = row_count
 
     def initializePlan(self):
         self   
