@@ -16,6 +16,22 @@ import serial
 
 
 class BatchRuns:
+    
+    def getAll(self):
+        batches = []
+        
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        
+        # Get batch template for this template_id
+        cur = con.cursor()
+        res = cur.execute("select access_key from batch order by created desc").fetchall()
+        for row in res:
+            temp_b = BatchRuns().getByAccessKey(row['access_key'])
+            batches.append(temp_b)
+        
+        return batches
+    
     def createFromTemplate(template_access_key):
         # Needed for the new batch access key
         seed = str(round(time.time() * 1000))
@@ -64,23 +80,28 @@ class BatchRuns:
         cur = con.cursor()
 
         res = cur.execute("select * from batch where access_key = '"+access_key+"'").fetchone()
-
-        # Create BatchRun object
-        batch = BatchRun()
-        batch.accessKey = access_key
-        batch.name = res['name']
-        batch.description = res['description']
+    
+        if(res == None):
+            return(BatchRun())
+        else:
+            # Create BatchRun object
+            batch = BatchRun()
+            batch.accessKey = access_key
+            batch.name = res['name']
+            batch.description = res['description']
+            batch.created = res['created']
+            
+            # Get all associated sample sets and add to batch run
+            batch.sampleSets = SampleSets().getByBatchAccessKey(access_key)
         
-        # Get all associated sample sets and add to batch run
-        batch.sampleSets = SampleSets().getByBatchAccessKey(access_key)
-        
-        # Return batch run
-        return batch
+            # Return batch run
+            return batch
 
 class BatchRun:
     accessKey = ""
     name = ""
     description = ""
+    created = ""
     sampleSets = []
     
     def addSampleSet(self, sample_set):
