@@ -1,0 +1,25 @@
+body {
+	font-family: sans-serif;
+}
+
+
+.title_bar {
+	width: 98%;
+	background-color: LIGHTBLUE;
+	border-radius: 5px;
+	padding: 5px;
+	border: solid 1px BLUE;
+}
+
+#batch_list {
+	width:25%;
+	background-color: LIGHTBLUE;
+	border-radius: 5px;
+	padding: 5px;
+	border: solid 1px BLUE;
+	margin-top: 5px;
+}
+
+#work_area {
+
+}

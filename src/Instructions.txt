@@ -1,0 +1,42 @@
+CNCO2 Usage Instructions
+
+Create a new sample batch from a template
+
+python3 ./cnco2_batch_create.py TEMPLATE_NAME
+
+This will output the new batch access key.
+-----
+
+
+Run a sample batch
+
+python3 ./cnco2_batch_run.py BATCH_ACCESS_KEY
+
+This will start the complete run. Ouput will be stored in cnco2_log.txt
+If the sensor reports a low value, the system will automatically stop. Use the start script to resume
+-----
+
+Pause a batch run in progress
+
+python3 ./cnco2_stop.py
+-----
+
+Resume a paused batch run
+
+python3 ./cnco2_start.py
+-----
+
+Get a list of batchs
+
+python3 ./cnco2_batch_details.php
+-----
+
+Get details of a specific batch
+
+python3 ./cnco2_batch_details.php BATCH_ACCESS_KEY
+-----
+
+Download sampling data
+
+python ./cnco2_data_export.py BATCH_ACCESS_KEY
+
