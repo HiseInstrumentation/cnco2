@@ -11,6 +11,7 @@ import hashlib
 import time
 from time import localtime, strftime
 import serial
+import re
 
 
 
@@ -164,13 +165,31 @@ class System:
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
     def isRunning():
-        return True
-
-    def start(self):
-        self
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
         
-    def stop(self):
-        self
+        res = cur.execute("select is_running from cnco2_system").fetchone()
+        if(res['is_running'] == 0):
+            return False
+        else:
+            return True
+
+    def start():
+        Logging.write("Starting System")
+        con = sqlite3.connect("cnco2.db")
+        cur = con.cursor()
+        
+        res = cur.execute("update cnco2_system set is_running = 1")
+        con.commit()
+        
+    def stop():
+        Logging.write("Stopping System")
+        con = sqlite3.connect("cnco2.db")
+        cur = con.cursor()
+        
+        res = cur.execute("update cnco2_system set is_running = 0")
+        con.commit()
 
 class Storage:
     def write(self, batch_access_key, x_pos, y_pos, o2_val, temp_val, pressure_val, status):
@@ -198,6 +217,7 @@ class Gantry:
     
     def connect(self, serial_port, baud_rate):
         self.gantry_serial = serial.Serial(serial_port, baud_rate)
+        Logging.write("Connecting to gantry on "+serial_port+" Baud Rate:"+str(baud_rate), True)
         time.sleep(3)
         commands = []
         commands.append(b'$5=0\n')   # Treat switches as normally open
@@ -210,10 +230,10 @@ class Gantry:
         
     def runCommands(self, commands):
         for c in commands:
-            print(c)
             self.gantry_serial.write(c)
+            Logging.write(c.decode('utf-8'))
             time.sleep(1)
-            print(self.gantry_serial.read_all().decode('utf-8'))
+            Logging.write(self.gantry_serial.read_all().decode('utf-8'))
             time.sleep(1)
         
     def moveTo(self, x, y):
@@ -245,44 +265,42 @@ class O2Sensor:
         self.connect(serial_port, baud_rate)
         
     def connect(self, serial_port, baud_rate):
-        self.sensor_serial = serial.Serial(serial_port, baud_rate)
-
+        Logging.write("Connecting to O2 Sensor on "+serial_port+" Baud Rate:"+str(baud_rate), True)
+        try:
+            self.sensor_serial = serial.Serial(serial_port, baud_rate)
+            return True
+        except serial.serialutil.SerialException:
+            Logging.write("Could not connect to sensor")
+            System.stop()
+            return False
+            
     def getReading(self):
         return_value = O2SensorReading()
         
         self.sensor_serial.write(b'M\n')
         time.sleep(2)
         return_str = self.sensor_serial.read_all().decode('utf-8')
-        print("RETURN: ")
-        print(return_str)
-        if(return_str[0][:10] == "Low signal"):
+        Logging.write(return_str)
+        if(return_str[:10] == "Low signal"):
             return_value.status = "Low Signal"
         else:
-            vals = return_str.split(",")
-            return_value.o2 = vals[0][:4]
-            return_value.temp = vals[1][:4]
-            return_value.pressure = vals[2][:4]
+            regex_o2 = "^[0-9]*\.[0-9]*"
+            regex_te = "[0-9]*\.[0-9]*\B"
+            regex_pr = "[0-9]{4}|[0-9]{3}"
+            
+            return_value.o2 = re.search(regex_o2, return_str).group()
+            return_value.temp = re.search(regex_te, return_str).group()
+            return_value.pressure = re.search(regex_pr, return_str).group()
             return_value.status = "O2 Read Successful"
 
         return return_value
-        
-    def runCommands(self, commands):
-        return_values = []
-        for c in commands:
-            self.sensor_serial.write(c)
-            time.sleep(2)
-            return_values.append(self.sensor_serial.read_all().decode('utf-8'))
-            time.sleep(2)
-
-    
-        return return_values
 
 class Logging:
     
     def write(message, echo = False ):
-        pre_time = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+        pre_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
         log_file = open('cnco2_log.txt', 'a')
-        log_file.write(pre_time+": " + message+"\n")
+        log_file.write(pre_time+": " + message + "\n")
         if(echo == True):
             print(message)
         log_file.close()

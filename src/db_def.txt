@@ -38,3 +38,10 @@ create table sample_store (
 	status REAL,
 	collected TEXT
 	);
+	
+	
+create table cnco2_system (
+	is_running INTEGER default 0
+);
+
+insert into cnco2_system values (0);
