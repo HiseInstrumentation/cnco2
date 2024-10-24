@@ -201,6 +201,19 @@ class Storage:
         cur.execute(sql)
         con.commit()
         
+    def getByAccessKey(self, batch_access_key):
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+        outfile = open(batch_access_key+".csv", "w")
+        outfile.write("'batch_access_key','collected','x_pos','y_pos','o2_pct','temp_c','pressure_mb','status'\n")
+        
+        sql = "select * from sample_store where batch_access_key = '"+batch_access_key+"' order by collected"
+        res = cur.execute(sql)
+        for row in res:
+            outfile.write("'"+row['batch_access_key']+"','"+row['collected']+"',"+str(row['x_pos'])+","+str(row['y_pos'])+","+str(row['o2_value'])+","+str(row['temp_value'])+","+str(row['pressure_value'])+",'"+row['status']+"'\n")
+
+        outfile.close()
 
 class Gantry:
     gantry_serial = ""

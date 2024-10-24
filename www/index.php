@@ -11,7 +11,7 @@
 	</head>
 
 	<body>
-		<div>
+		<div id='app_content'>
 			<div class='title_bar'>IP Address: <?= getIpAddress(); ?></div>
 			<div id='batch_list'>
 <?php

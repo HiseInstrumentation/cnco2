@@ -1,7 +1,12 @@
 body {
 	font-family: sans-serif;
+	align: center;
 }
 
+#app_content {
+	max-width: 1100px;
+	align: center;
+}
 
 .title_bar {
 	width: 98%;
@@ -51,4 +56,16 @@ body {
 	width: 60%;
 	margin-right: 5px;
 	margin-top: 10px;
+}
+
+td {
+	border: solid 1px #DDD;
+	background: #EEE;
+	font-size: 12px;
+}
+
+th {
+	padding: 3px;
+	background: #000;
+	color: #FFF;
 }
