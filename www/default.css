@@ -12,14 +12,43 @@ body {
 }
 
 #batch_list {
-	width:25%;
-	background-color: LIGHTBLUE;
+	width:30%;
+	float: left;
+}
+
+
+.batch_entry  {
+	font-size: 10pt;
+
+	padding:5px;
+	padding-top: 10px;
+	cursor: pointer;
 	border-radius: 5px;
-	padding: 5px;
-	border: solid 1px BLUE;
-	margin-top: 5px;
+}
+
+.batch_entry:hover {
+	background-color: #DDD;
+}
+
+.batch_name {
+	float: left;
+	font-weight: bold;
+}
+
+.batch_created {
+	float: right;
+	font-style: italic;
+}
+
+.batch_access_key {
+	clear: both;
+	width: 100%;
+	text-align: center;
 }
 
 #work_area {
-
+	float: right;
+	width: 60%;
+	margin-right: 5px;
+	margin-top: 10px;
 }
