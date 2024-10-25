@@ -19,20 +19,19 @@ if __name__ == '__main__':
 		print(batch.created)
 		print("")
 		print("Sample Sets")
+		print(f"{'Name' : <20}{'Home X' : ^10}{'Home Y' : ^10}{'Rows':^5}{'Cols':^5}{'Row Spc(mm)':^12}{'Col Spc(mm)': ^12}")
+		print("--------------------------------------------------------------------------------------")
 		for ss in batch.sampleSets:
-			print("-------------------------------------")
-			print("\t"+ss.name)
-			print("\tHome X: "+str(ss.homeX))
-			print("\tHome Y: "+str(ss.homeY))
-			print("\tRows: " + str(ss.rowCount))
-			print("\tCols: " + str(ss.colCount))
-			print("\tRow Spacing: " + str(ss.rowSpacing))
-			print("\tCol Spacing: " + str(ss.colSpacing))
+			print(f"{ss.name : <20}{ss.homeX : ^10}{ss.homeY : ^10}{ss.rowCount:^5}{ss.colCount:^5}{ss.rowSpacing:^12}{ss.colSpacing: ^12}")
+			"""
 			ss.initializePlan()
 			for ssu in ss.execPlan:
 				print("\t\tPOS: " + str(ssu.x) + "," + str(ssu.y) )
+			"""
 	else:
 		print("All Batches")
 		batch_list = cnco2.BatchRuns().getAll()
+		print(f"{'Name' : <20}{'Access Key' : ^34}{'Description' : ^40}")
+		print("--------------------------------------------------------------------------------------")
 		for batch in batch_list:
-			print(batch.created + ": " + batch.accessKey + " " + batch.name)
+		    print(f"{batch.created : <20}{batch.accessKey : ^34}{batch.name : ^40}")

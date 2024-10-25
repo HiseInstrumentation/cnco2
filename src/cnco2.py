@@ -33,7 +33,7 @@ class BatchRuns:
         
         return batches
     
-    def createFromTemplate(template_access_key):
+    def createFromTemplate(template_access_key, t_new_name = ""):
         # Needed for the new batch access key
         seed = str(round(time.time() * 1000))
         b_seed = hashlib.md5(seed.encode('utf-8'))
@@ -47,6 +47,11 @@ class BatchRuns:
         res = cur.execute("select * from template_batch where access_key = '"+template_access_key+"'").fetchone()
         new_description = res['description']
         new_name = res['name']        
+        if t_new_name == "":
+            new_name = res['name']
+        else:
+            new_name = t_new_name
+
         new_access_key = b_seed.hexdigest()
         
         # Create new batch db record from template values
@@ -96,6 +101,45 @@ class BatchRuns:
             batch.sampleSets = SampleSets().getByBatchAccessKey(access_key)
         
             # Return batch run
+            return batch
+
+class BatchTemplate:
+    accessKey = ""
+    name = ""
+    description = ""
+    
+class BatchTemplates:
+    
+    def getAll():
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+        templates = []
+        
+        temps = cur.execute("select access_key from template_batch order by name").fetchall()
+        
+        for temp in temps:
+            templates.append(BatchTemplates.getByAccessKey(temp['access_key']))
+            
+ 
+        return templates
+ 
+    def getByAccessKey(access_key):
+        con = sqlite3.connect("cnco2.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        res = cur.execute("select * from template_batch where access_key = '"+access_key+"'").fetchone()
+    
+        if(res == None):
+            return(BatchTemplate())
+        else:
+            # Create BatchRun object
+            batch = BatchTemplate()
+            batch.accessKey = access_key
+            batch.name = res['name']
+            batch.description = res['description']
+            
             return batch
 
 class BatchRun:

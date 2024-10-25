@@ -9,34 +9,6 @@ Execute a batch
 Command line parameters:
 batch_id
 
-Program Structures
-	Batch stored parameters
-	. Name
-	. Description
-	. Enable
-	. action on failure
-	. included_sample_sets ([1,2,3,4])
-
-	Sample Set structure
-	. home_x
-	. home_y
-	. col_count
-	. row_count
-	. name
-
-	Element Structure
-	. x offset			int
-	. y offset			int
-	. sample_time		datetime
-	. sample_value		decimal
-	. sample_status		int
-	
-	Sample Status
-		0 Success
-		1 Value out of bounds
-		2 Other Warning
-		10 Could not read
-		11 Other Fatal
 """
 import cnco2
 import sys
