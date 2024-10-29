@@ -8,7 +8,7 @@
 		switch($action) {
 			case "view_data":
 				$key = substr(trim($_POST['batch_access_key']), 0, 32);
-				$db = new SQLite3("../src/cnco2.db");
+				$db = new SQLite3("../src/cnco2_data.db");
 				$res = $db->query("select * from sample_store where batch_access_key = '".$key."' order by collected");
 				print("<a href = 'download_data.php?batch_access_key=".$key."'>Download as CSV</a>");
 				print("<table>

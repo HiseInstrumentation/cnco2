@@ -1,5 +1,4 @@
-drop table if exists template_batch;
-
+// cnco2.db
 create table template_batch (
 	access_key TEXT,
 	name TEXT,
@@ -9,7 +8,11 @@ create table template_batch (
 insert into template_batch values
 	('TEMPLATE01', 'Standard Template', 'Template for 4 bay, 48 count sample set');
 
-drop table if exists template_sample_set;
+CREATE TABLE batch (
+	access_key TEXT,
+	name TEXT,
+	description TEXT, 
+	created TEXT);
 
 create table template_sample_set (
 	t_batch_access_key TEXT,
@@ -28,6 +31,26 @@ insert into template_sample_set values
 	('TEMPLATE01', 'Temp 3', 70,70,4,4,1.5, 2.0),
 	('TEMPLATE01', 'Temp 4', 100,100,4,4,1.5, 2.0);
 
+CREATE TABLE sample_set (
+	batch_access_key TEXT,
+	name TEXT,
+	home_x REAL,
+	home_y REAL,
+	row_count INTEGER,
+	col_count INTEGER,
+	row_spacing REAL,
+	col_spacing REAL
+);
+	
+create table cnco2_system (
+	is_running INTEGER default 0
+);
+
+insert into cnco2_system values (0);
+
+
+// cnco2_data.db
+
 create table sample_store (
 	batch_access_key TEXT,
 	x_pos REAL,
@@ -39,9 +62,3 @@ create table sample_store (
 	collected TEXT
 	);
 	
-	
-create table cnco2_system (
-	is_running INTEGER default 0
-);
-
-insert into cnco2_system values (0);

@@ -7,6 +7,7 @@ header('Content-Disposition: attachment; filename="cnco2_'.$key.'.csv"');
 	
 $db = new SQLite3("../src/cnco2.db");
 $res = $db->query("select * from sample_store where batch_access_key = '".$key."' order by collected");
+print("Access Key,Collected,X Pos,Y Pos,O2 %,Temp C, Pressure Mb,Status\n");
 while($row = $res->fetchArray()) {
-	print("'".$row['batch_access_key']."','".$row['collected']."',".$row['x_pos'].",".$row['y_pos'].",".$row['o2_value'].",".$row['temp_value'].",".$row['pressure_value'].",'".$row['status']."'\n");
+	print($row['batch_access_key'].",".$row['collected'].",".$row['x_pos'].",".$row['y_pos'].",".$row['o2_value'].",".$row['temp_value'].",".$row['pressure_value'].",".$row['status']."\n");
 }

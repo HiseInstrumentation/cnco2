@@ -237,7 +237,7 @@ class System:
 
 class Storage:
     def write(self, batch_access_key, x_pos, y_pos, o2_val, temp_val, pressure_val, status):
-        con = sqlite3.connect("cnco2.db")
+        con = sqlite3.connect("cnco2_data.db")
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
@@ -246,7 +246,7 @@ class Storage:
         con.commit()
         
     def getByAccessKey(self, batch_access_key):
-        con = sqlite3.connect("cnco2.db")
+        con = sqlite3.connect("cnco2_data.db")
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         outfile = open(batch_access_key+".csv", "w")
