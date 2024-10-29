@@ -262,15 +262,19 @@ class Storage:
 class Gantry:
     gantry_serial = ""
     
-    def goHome():
+    def goHome(self):
         commands = []
         commands.append(b'G28\n')
         self.runCommands(commands)
     
     def findHome(self):
+        Logging.write("Finding Home", True)
         commands = []
-        commands.append(b'$H\n')
+        commands.append(b'$H X\n')
+        commands.append(b'$H Y\n')        
         self.runCommands(commands)
+        time.sleep(10)
+
     
     def connect(self, serial_port, baud_rate):
         self.gantry_serial = serial.Serial(serial_port, baud_rate)
@@ -291,7 +295,6 @@ class Gantry:
             Logging.write(c.decode('utf-8'))
             time.sleep(1)
             Logging.write(self.gantry_serial.read_all().decode('utf-8'))
-            time.sleep(1)
         
     def moveTo(self, x, y):
         commands = []
@@ -300,7 +303,7 @@ class Gantry:
         
     def initialize(self, serial_port, baud_rate):
         self.connect(serial_port, baud_rate)
-        #self.goHome() #REMOVE
+        self.findHome()
         
 class O2SensorReading:
     o2_pct = ""
@@ -333,22 +336,28 @@ class O2Sensor:
             
     def getReading(self):
         return_value = O2SensorReading()
-        
+        value_rec = False
         self.sensor_serial.write(b'M\n')
         time.sleep(2)
         return_str = self.sensor_serial.read_all().decode('utf-8')
         Logging.write(return_str)
-        if(return_str[:10] == "Low signal"):
-            return_value.status = "Low Signal"
-        else:
-            regex_o2 = "^[0-9]*\.[0-9]*"
-            regex_te = "[0-9]*\.[0-9]*\B"
-            regex_pr = "[0-9]{4}|[0-9]{3}"
+        while(value_rec == False):
+            if(return_str[:10] == "Low signal"):
+                return_value.status = "Low Signal"
+                value_rec = True
+            elif(return_str.strip() == ""):
+                time.sleep(1)
+                Logging.write("Received no value from O2 sensor")
+            else:
+                regex_o2 = "^[0-9]*\.[0-9]*"
+                regex_te = "[0-9]*\.[0-9]*\B"
+                regex_pr = "[0-9]{4}|[0-9]{3}"
             
-            return_value.o2 = re.search(regex_o2, return_str).group()
-            return_value.temp = re.search(regex_te, return_str).group()
-            return_value.pressure = re.search(regex_pr, return_str).group()
-            return_value.status = "O2 Read Successful"
+                return_value.o2 = re.search(regex_o2, return_str).group()
+                return_value.temp = re.search(regex_te, return_str).group()
+                return_value.pressure = re.search(regex_pr, return_str).group()
+                return_value.status = "O2 Read Successful"
+                value_rec = True
 
         return return_value
 

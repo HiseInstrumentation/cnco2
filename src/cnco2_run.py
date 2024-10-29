@@ -30,12 +30,13 @@ if __name__ == '__main__':
 	for sample_set in batch.sampleSets:
 		sample_set.initializePlan()
 
-	gantry = cnco2.Gantry()
-	gantry.initialize('/dev/ttyUSB0', 115200)
-		
-	#	Connect to COM for sensor
+	# Connect to COM for sensor
 	o2 = cnco2.O2Sensor()
 	o2.initialize('/dev/ttyUSB1', 19200)
+
+	# Connect to gantry controller
+	gantry = cnco2.Gantry()
+	gantry.initialize('/dev/ttyUSB0', 115200)
 
 	# For each sample set
 	for ss in batch.sampleSets:
@@ -54,3 +55,5 @@ if __name__ == '__main__':
 				print("\n[ System Stopped ]\n")
 				time.sleep(5)
 
+	gantry.goHome()
+	cnco2.Logging.write("Job Complete", true)
