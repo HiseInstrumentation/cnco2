@@ -12,7 +12,10 @@
 
 	<body>
 		<div id='app_content'>
-			<div class='title_bar'>IP Address: <?= getIpAddress(); ?></div>
+			<div class='title_bar'>
+				<div class='ip_section'>IP Address: <?= getIpAddress(); ?></div>&nbsp;
+				<div class='menu_bar'><a href = 'help.php' target = '_INSTRUCTIONS'>Instructions</a></div>
+			</div>
 			<div id='batch_list'>
 <?php
 				$batches = getAllBatches();

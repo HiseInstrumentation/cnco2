@@ -16,6 +16,14 @@ body {
 	border: solid 1px BLUE;
 }
 
+.ip_section {
+	float: left;
+}
+
+.menu_bar {
+	float: right;
+}
+
 #batch_list {
 	width:30%;
 	float: left;
