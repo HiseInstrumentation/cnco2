@@ -1724,3 +1724,11 @@ ok
 2024-10-30 10:47:59: ok
 
 2024-10-30 10:47:59: Job Complete
+2024-10-30 14:50:38: Connecting to O2 Sensor on /dev/ttyUSB1 Baud Rate:19200
+2024-10-30 14:50:38: Could not connect to sensor
+2024-10-30 14:50:38: Stopping System
+2024-10-30 14:50:38: Connecting to gantry on /dev/ttyUSB0 Baud Rate:115200
+2024-10-30 14:59:57: Connecting to O2 Sensor on /dev/ttyUSB1 Baud Rate:19200
+2024-10-30 14:59:57: Could not connect to sensor
+2024-10-30 14:59:57: Stopping System
+2024-10-30 14:59:57: Connecting to gantry on /dev/ttyUSB0 Baud Rate:115200

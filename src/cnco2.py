@@ -18,6 +18,32 @@ import re
 
 class BatchRuns:
     
+    def hasRun(self, batch_access_key):
+        con = sqlite3.connect("cnco2_data.db")
+        con.row_factory = sqlite3.Row
+        
+        cur = con.cursor()
+        res = cur.execute("select count(*) cnt from sample_store where batch_access_key = '"+batch_access_key+"'").fetchone()
+        cnt = res['cnt']
+        
+        if(cnt == 0):
+            return False
+        else:
+            return True
+        
+    
+    def archiveAndClear(self, batch_access_key):
+        con = sqlite3.connect("cnco2_data.db")
+        con.row_factory = sqlite3.Row
+        
+        cur = con.cursor()
+        cur.execute("insert into sample_store_archive select datetime('now', 'localtime'), batch_access_key, x_pos, y_pos, o2_value, temp_value, pressure_value, status, sample_type, collected from sample_store where batch_access_key = '"+batch_access_key+"'")
+        con.commit()
+        
+        cur.execute("delete from sample_store where batch_access_key = '"+batch_access_key+"'")
+        con.commit()
+        
+    
     def getAll(self):
         batches = []
         

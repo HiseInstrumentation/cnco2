@@ -25,6 +25,15 @@ if __name__ == '__main__':
 	
 	batch_access_key = sys.argv[1]
 	
+	if(cnco2.BatchRuns().hasRun(batch_access_key)):
+		cont = input("WARNING! WARNING! WARNING!\n This batch has already been ran. Continueing will ERASE this data.\n Enter Y to ERASE YOUR DATA. Any other key will abort.\n Your Choice: ")
+		if(cont == 'Y'):
+			print("\nERASING DATA\n")
+			cnco2.BatchRuns().archiveAndClear(batch_access_key)
+		else:
+			print("Aborting")
+			sys.exit()
+	
 	batch = cnco2.BatchRuns().getByAccessKey(batch_access_key)
 
 	for sample_set in batch.sampleSets:

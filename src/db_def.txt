@@ -71,3 +71,15 @@ create table sample_store (
 	collected TEXT
 	);
 	
+create table sample_store_archive (
+	archived TEXT,
+	batch_access_key TEXT,
+	x_pos REAL,
+	y_pos REAL,
+	o2_value REAL,
+	temp_value REAL,
+	pressure_value REAL,
+	status REAL,
+	sample_type INTEGER,
+	collected TEXT
+	);
