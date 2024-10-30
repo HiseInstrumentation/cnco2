@@ -1732,3 +1732,9 @@ ok
 2024-10-30 14:59:57: Could not connect to sensor
 2024-10-30 14:59:57: Stopping System
 2024-10-30 14:59:57: Connecting to gantry on /dev/ttyUSB0 Baud Rate:115200
+2024-10-30 15:46:05: 
+Creating new batch from template TEMP02.
+
+2024-10-30 15:46:05: 
+New Batch Key: 75f2e31fdef32fa31b211fcbd4ecb709
+

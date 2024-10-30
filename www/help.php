@@ -81,9 +81,11 @@ Not the "Access Key" value as you will need this to create a batch.<br /><br />
 
 <b>Create a new sample batch from a template</b><br /><br />
 
-<code>python3 ./cnco2_batch_create.py TEMPLATE_NAME</code><br /><br />
+<code>python3 ./cnco2_batch_create.py TEMPLATE_NAME ["USERS NAME"]</code><br /><br />
 
-This will output the new batch access key.<br /><br />
+This will output the new batch access key.  If you pass in the second
+parameter, the batch will have that name instead of the template
+name.<br /><br />
 
 
 <b>Run a sample batch</b><br /><br />
