@@ -367,17 +367,20 @@ class O2Sensor:
     def getReading(self):
         return_value = O2SensorReading()
         value_rec = False
-        self.sensor_serial.write(b'M\n')
-        time.sleep(2)
-        return_str = self.sensor_serial.read_all().decode('utf-8')
-        Logging.write(return_str)
+        
         while(value_rec == False):
+            self.sensor_serial.write(b'M\n')
+            time.sleep(1.5)
+            return_str = self.sensor_serial.read_all().decode('utf-8')
+            Logging.write(return_str)
+            
             if(return_str[:10] == "Low signal"):
                 return_value.status = "Low Signal"
-                value_rec = True
+                Logging.write("Received Low Signal, waiting 30 seconds", True)
+                time.sleep(30)
             elif(return_str.strip() == ""):
-                time.sleep(1)
-                Logging.write("Received no value from O2 sensor")
+                Logging.write("Received no value, waiting 3 seconds", True)
+                time.sleep(3)
             else:
                 regex_o2 = "^[0-9]*\.[0-9]*"
                 regex_te = "[0-9]*\.[0-9]*\B"

@@ -46,14 +46,7 @@ if __name__ == '__main__':
 				gantry.moveTo(su.x, su.y)
 				reading = o2.getReading()
 				print("\t"+reading.status)
-				if(reading.status == "Low Signal"):
-					cnco2.System.stop()
-					cnco2.Logging.write("Low Signal Detected, System Stopped")
-				else:
-					cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
-			else:
-				print("\n[ System Stopped ]\n")
-				time.sleep(5)
+				cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
 
 	gantry.goHome()
 	cnco2.Logging.write("Job Complete", True)
