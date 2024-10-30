@@ -71,8 +71,12 @@ class BatchRuns:
             new_col_count = tss['col_count']
             new_row_spacing = tss['row_spacing']
             new_col_spacing = tss['col_spacing']
+            new_ctl_x = tss['ctl_x']
+            new_ctl_y = tss['ctl_y']
+            new_blnk_x = tss['blnk_x']
+            new_blnk_y = tss['blnk_y']
 
-            cur.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+")")
+            cur.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing, ctl_x, ctl_y, blnk_x, blnk_y) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+", "+str(new_ctl_x)+", "+str(new_ctl_y)+", "+str(new_blnk_x)+", "+str(new_blnk_y)+")")
             con.commit()
 
         con.close()
@@ -186,10 +190,29 @@ class SampleSet:
     rowCount = 0
     rowSpacing = 0
     colSpacing = 0
+    controlX = 0
+    controlY = 0
+    blankX = 0
+    blankY = 0
     execPlan = []
 
     def initializePlan(self):
         self.execPlan = []
+
+        if(self.controlX > 0):
+            ctl_su = SampleUnit()
+            ctl_su.x = self.controlX
+            ctl_su.y = self.controlY
+            ctl_su.sampleStatus = 1
+            self.execPlan.append(ctl_su)
+
+        if(self.blankX > 0):
+            blnk_su = SampleUnit()
+            blnk_su.x = self.blankX
+            blnk_su.y = self.blankY
+            blnk_su.sampleStatus = 2
+            self.execPlan.append(blnk_su)
+
         for row in range(self.rowCount):
             for col in range(self.colCount):
                 t_ss = SampleUnit()
@@ -203,6 +226,8 @@ class SampleUnit:
     sampleTime = ""
     sampleValue = ""
     sampleStatus = 0
+    SAMPLE_STATUS_CTL = 1
+    SAMPLE_STATUS_BLNK = 2
 
 class System:
 
