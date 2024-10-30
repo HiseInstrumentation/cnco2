@@ -14,6 +14,7 @@
 				print("<table>
 						<tr>
 						<th>Collected</th>
+						<th>Type</th>
 						<th>X Pos</th>
 						<th>Y Pos</th>
 						<th>O2 %</th>
@@ -21,8 +22,10 @@
 						<th>Pressure Mb</th>
 						</tr>");
 				while($row = $res->fetchArray()) {
+					$sample_type = ($row['sample_type'] == 0) ? 'Sample' : (($row['sample_type'] == 1) ? 'Control' : 'Blank');
 					print("<tr>
 								<td>".$row['collected']."</td>
+								<td>".$sample_type ."</td>
 								<td>".$row['x_pos'] ."</td>
 								<td>".$row['y_pos'] ."</td>
 								<td>".$row['o2_value'] ."</td>
