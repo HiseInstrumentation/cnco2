@@ -67,6 +67,7 @@ create table sample_store (
 	temp_value REAL,
 	pressure_value REAL,
 	status REAL,
+	sample_type INTEGER,
 	collected TEXT
 	);
 	

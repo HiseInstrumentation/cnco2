@@ -50,10 +50,10 @@ if __name__ == '__main__':
 					cnco2.System.stop()
 					cnco2.Logging.write("Low Signal Detected, System Stopped")
 				else:
-					cnco2.Storage().write(batch_access_key, su.x, su.y, reading.o2, reading.temp, reading.pressure, reading.status)
+					cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
 			else:
 				print("\n[ System Stopped ]\n")
 				time.sleep(5)
 
 	gantry.goHome()
-	cnco2.Logging.write("Job Complete", true)
+	cnco2.Logging.write("Job Complete", True)

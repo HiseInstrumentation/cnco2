@@ -176,6 +176,10 @@ class SampleSets:
             temp_sample_set.colCount = ss['col_count']
             temp_sample_set.rowSpacing = ss['row_spacing']
             temp_sample_set.colSpacing = ss['col_spacing']
+            temp_sample_set.controlX = ss['ctl_x']
+            temp_sample_set.controlY = ss['ctl_y']
+            temp_sample_set.blankX = ss['blnk_x']
+            temp_sample_set.blankY = ss['blnk_y']
             
             sample_sets.append(temp_sample_set)
         
@@ -226,8 +230,9 @@ class SampleUnit:
     sampleTime = ""
     sampleValue = ""
     sampleStatus = 0
-    SAMPLE_STATUS_CTL = 1
-    SAMPLE_STATUS_BLNK = 2
+    SAMPLE_TYPE_REG = 0
+    SAMPLE_TYPE_CTL = 1
+    SAMPLE_TYPE_BLNK = 2
 
 class System:
 
@@ -261,12 +266,12 @@ class System:
         con.commit()
 
 class Storage:
-    def write(self, batch_access_key, x_pos, y_pos, o2_val, temp_val, pressure_val, status):
+    def write(self, batch_access_key, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
         con = sqlite3.connect("cnco2_data.db")
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        sql = "insert into sample_store values ('"+batch_access_key+"', "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', '"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
+        sql = "insert into sample_store values ('"+batch_access_key+"', "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', "+str(sample_type) + ",'"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
         cur.execute(sql)
         con.commit()
         

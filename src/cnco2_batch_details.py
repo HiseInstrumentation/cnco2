@@ -26,7 +26,7 @@ if __name__ == '__main__':
 			
 			ss.initializePlan()
 			for ssu in ss.execPlan:
-				print("\t\tPOS: " + str(ssu.x) + "," + str(ssu.y) )
+				print("\t\tPOS: " + str(ssu.x) + "," + str(ssu.y) + " Type: " + str(ssu.sampleStatus) )
 			
 	else:
 		print("All Batches")
