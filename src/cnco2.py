@@ -326,8 +326,9 @@ class Gantry:
     def findHome(self):
         Logging.write("Finding Home", True)
         commands = []
-        commands.append(b'$H X\n')
-        commands.append(b'$H Y\n')        
+        # commands.append(b'$H X\n')
+        # commands.append(b'$H Y\n')        
+        commands.append(b'$H\n')
         self.runCommands(commands)
         time.sleep(10)
 
@@ -337,8 +338,9 @@ class Gantry:
         Logging.write("Connecting to gantry on "+serial_port+" Baud Rate:"+str(baud_rate), True)
         time.sleep(3)
         commands = []
-        commands.append(b'$5=0\n')   # Treat switches as normally open
+        commands.append(b'$5=7\n')   # Treat switches as normally open
         commands.append(b'$21=1\n')  # Enable physical limit switches
+        commands.append(b'$3=3\n')   # Reverse axis
         commands.append(b'$22=1\n')  # Enable homing
         commands.append(b'G21\n')    # Metric mm
         commands.append(b'G90\n')    # Absolute mode
@@ -351,6 +353,7 @@ class Gantry:
             Logging.write(c.decode('utf-8'))
             time.sleep(1)
             Logging.write(self.gantry_serial.read_all().decode('utf-8'))
+            time.sleep(2)
         
     def moveTo(self, x, y):
         commands = []

@@ -57,5 +57,5 @@ if __name__ == '__main__':
 				print("\t"+reading.status)
 				cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
 
-	gantry.goHome()
+	gantry.findHome()
 	cnco2.Logging.write("Job Complete", True)
