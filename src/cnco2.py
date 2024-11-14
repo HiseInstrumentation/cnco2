@@ -411,8 +411,8 @@ class O2Sensor:
                 Logging.write("Received no value, waiting 3 seconds", True)
                 time.sleep(3)
             else:
-                regex_o2 = "^[0-9]*\.[0-9]*"
-                regex_te = "[0-9]*\.[0-9]*\B"
+                regex_o2 = "^[0-9]*.[0-9]*"
+                regex_te = ",[0-9]*.[0-9]*"
                 regex_pr = "[0-9]{4}|[0-9]{3}"
             
                 return_value.o2 = re.search(regex_o2, return_str).group()
