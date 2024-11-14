@@ -13,8 +13,9 @@ time.sleep(5)
 while True:
         heater.write(b'testy\n')
         time.sleep(2)
-        response = heater.readline().decode('utf-8')
-        print("\nResponse:")
-        print("\n"+response+"\n")
+        response = heater.readline().decode('utf-8').strip()
+        if(response != ""):
+                print("\nResponse:")
+                print("\n"+response+"\n")
 
 
