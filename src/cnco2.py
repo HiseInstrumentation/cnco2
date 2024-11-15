@@ -101,8 +101,10 @@ class BatchRuns:
             new_ctl_y = tss['ctl_y']
             new_blnk_x = tss['blnk_x']
             new_blnk_y = tss['blnk_y']
+            new_temp_enable = tss['temp_enable']
+            new_temp_target = tss['temp_target']
 
-            cur.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing, ctl_x, ctl_y, blnk_x, blnk_y) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+", "+str(new_ctl_x)+", "+str(new_ctl_y)+", "+str(new_blnk_x)+", "+str(new_blnk_y)+")")
+            cur.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing, ctl_x, ctl_y, blnk_x, blnk_y, temp_enable, temp_target) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+", "+str(new_ctl_x)+", "+str(new_ctl_y)+", "+str(new_blnk_x)+", "+str(new_blnk_y)+","+str(new_temp_enable)+", "+str(new_temp_target)+")")
             con.commit()
 
         con.close()
