@@ -47,6 +47,12 @@ if __name__ == '__main__':
 	gantry = cnco2.Gantry()
 	gantry.initialize('/dev/ttyUSB0', 115200)
 
+	# Get all heaters running
+
+	# Wait for system ready from heaters
+
+
+
 	# For each sample set
 	for ss in batch.sampleSets:
 		for su in ss.execPlan:
