@@ -10,6 +10,7 @@ if __name__ == '__main__':
         time.sleep(2)
 
         response = heater.readline().decode('utf-8').strip()
+        print(response)
         if(response[0:5] == "CNCO2"):
                 print("\nFound Heater at " + port + "\n")
                 while True:

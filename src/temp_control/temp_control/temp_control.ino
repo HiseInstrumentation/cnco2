@@ -119,7 +119,6 @@ void setup() {
 
   digitalWrite(PIN_ENABLE, HIGH);  // No idea what this does, try to remove
 
-  Serial.println(F("Griffin Lab"));
   Serial.println(F("CNCO2 HEATER 1"));
   delay(1000);
   stop();
