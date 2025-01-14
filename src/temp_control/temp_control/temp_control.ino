@@ -212,12 +212,14 @@ void loop() {
   
 
     if (current_temp < target_temp) {
+      // Move this logic to inside heat function
       if (current_temp >= (ambient_temp - 1)) {
         heat(false);
       } else {
         heat(true);
       }
     } else {
+      // Move this logic to inside cool function
       if (current_temp >= (ambient_temp + 1)) {
         cool(true);
       } else {
