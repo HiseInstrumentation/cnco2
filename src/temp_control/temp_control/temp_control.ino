@@ -30,7 +30,7 @@
 
 // Calculations
 #define aref_voltage 3.349
-#define rRef 9000  // 9kOhm
+#define rRef 11600  // 9kOhm
 
 
 String commands;
@@ -83,7 +83,7 @@ void cool(bool suppress) {
 /*
   Get the current temperature
 */
-float get_current_temperature() {
+float get_current_temperature() { 
   average = 0;
 
   for (n = 1; n < NUMSAMPLES; n++) {
@@ -95,14 +95,17 @@ float get_current_temperature() {
 
   rTherm = rRef / (1024 / average - 1);
 
-  logrTherm = log10(rTherm);
-
+  logrTherm = rTherm;
+  
   /*
     This equation is thermistor manufacturer sepcific.
     Manufacturer: UNKNOWN
-  */
+  
   tempTherm = .07191332 * pow(logrTherm, 6) - 1.791422 * pow(logrTherm, 5) + 18.67046 * pow(logrTherm, 4)
               - 105.4027 * pow(logrTherm, 3) + 350.9841 * pow(logrTherm, 2) - 729.505 * logrTherm + 833.2693;
+  */
+  
+  tempTherm = -(.000000000002 * pow(logrTherm, 3)) + (.0000002 * pow(logrTherm, 2)) - (.006 * logrTherm) + 77.378;
 
   return (tempTherm);
 }
