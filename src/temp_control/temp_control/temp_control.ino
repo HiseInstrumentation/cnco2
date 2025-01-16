@@ -30,7 +30,7 @@
 
 // Calculations
 #define aref_voltage 3.349
-#define rRef 11600  // 9kOhm
+#define rRef 11600  // Ideal is 11900 Ohms as determined by the controller mfg's instructions
 
 
 String commands;
