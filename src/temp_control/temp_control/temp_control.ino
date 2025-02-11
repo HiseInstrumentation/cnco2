@@ -26,7 +26,6 @@
 
 // Heat control
 #define HEAT_DUR_SEC 1
-#define COOL_DUR_SEC 1
 
 // Calculations
 #define aref_voltage 3.349
@@ -36,11 +35,11 @@
 String commands;
 float current_temp = 0;
 float target_temp = 0;
-float ambient_temp = 0;
+float ambient_temp = -100;
 int status = STOPPED;
 
 int heat_dur_sec = 1;
-int cool_dur_sec = 1;
+int heat_pwr_level = 255;
 
 // Temperature reading
 int samples[NUMSAMPLES], n;
@@ -55,13 +54,44 @@ void stop() {
   analogWrite(PIN_HEAT, 0);
 }
 
+void getHeatCoolPower(int temp_diff)
+{
+
+  switch (temp_diff) {
+    case 5:
+      heat_dur_sec = 1;
+      heat_pwr_level = 255;
+      break;
+    case 4:
+      heat_dur_sec = 1;
+      heat_pwr_level = 255;
+      break;
+    case 3:
+      heat_dur_sec = 1;
+      heat_pwr_level = 255;
+      break;
+    case 2:
+      heat_dur_sec = 1;
+      heat_pwr_level = 225;
+      break;
+    default:
+      heat_dur_sec = 1;
+      heat_pwr_level = 225;
+      break;
+    }
+  
+}
+
 /*
   Turn on heating
 */
 void heat(bool suppress) {
+  getHeatCoolPower(heat_dur_sec);
+  //Serial.print("PW: ");
+  //Serial.println(heat_pwr_level);
   analogWrite(PIN_COOL, 0);
   if (!suppress) {
-    analogWrite(PIN_HEAT, 255);
+    analogWrite(PIN_HEAT, heat_pwr_level);
   }
 
   delay(heat_dur_sec * 1000);
@@ -72,9 +102,12 @@ void heat(bool suppress) {
   Turn on cooling
 */
 void cool(bool suppress) {
+  getHeatCoolPower(heat_dur_sec);
+  //Serial.print("PW: ");
+  //Serial.println(heat_pwr_level);
   analogWrite(PIN_HEAT, 0);
   if (!suppress) {
-    analogWrite(PIN_COOL, 255);
+    analogWrite(PIN_COOL, heat_pwr_level);
   } 
   delay(heat_dur_sec * 1000);
   analogWrite(PIN_COOL, 0);
@@ -97,16 +130,26 @@ float get_current_temperature() {
 
   logrTherm = rTherm;
   
+ 
   /*
-    This equation is thermistor manufacturer sepcific.
-    Manufacturer: UNKNOWN
-  
-  tempTherm = .07191332 * pow(logrTherm, 6) - 1.791422 * pow(logrTherm, 5) + 18.67046 * pow(logrTherm, 4)
-              - 105.4027 * pow(logrTherm, 3) + 350.9841 * pow(logrTherm, 2) - 729.505 * logrTherm + 833.2693;
+  tempTherm = 0.000000000000000000000000312559145621717 * pow(logrTherm , 6) 
+            - 0.000000000000000000044153755786489 * pow(logrTherm , 5) 
+            + 0.00000000000000252921232833742 * pow(logrTherm , 4) 
+            - 0.0000000000759528833550828 * pow(logrTherm , 3) 
+            + 0.00000130404854263673 * pow(logrTherm , 2) 
+            - 0.0137601358467662 * pow(logrTherm , 1) 
+            + 96.356373987591;
   */
   
-  tempTherm = -(.000000000002 * pow(logrTherm, 3)) + (.0000002 * pow(logrTherm, 2)) - (.006 * logrTherm) + 77.378;
+  tempTherm = 0.000000000000000000000000312559 * pow(logrTherm , 6) 
+            - 0.000000000000000000044153755786 * pow(logrTherm , 5) 
+            + 0.00000000000000252921232833742 * pow(logrTherm , 4) 
+            - 0.0000000000759528833550828 * pow(logrTherm , 3) 
+            + 0.00000130404854263673 * pow(logrTherm , 2) 
+            - 0.0137601358467662 * pow(logrTherm , 1) 
+            + 96.356373987591;
 
+  
   return (tempTherm);
 }
 
@@ -128,7 +171,8 @@ void setup() {
 }
 
 void loop() {
-
+  bool suppress = false;
+  
   if (Serial.available()) {
     commands = Serial.readString();
     commands.trim();
@@ -147,10 +191,13 @@ void loop() {
       Serial.println(F("C"));
 
       target_temp = t_temp.toFloat();
-      ambient_temp = get_current_temperature();
+      if(ambient_temp == -100) {
+        ambient_temp = get_current_temperature();
+      }
 
+      
       Serial.println(F("Starting"));
-      Serial.println(F("Amb   \tTarg  \tCurr  \tDelay"));
+      Serial.println(F("Amb   \tTarg  \tCurr  \tDelay  \tPwr  \tS"));
       status = RUNNING;
     } else if (commands.substring(0, 7) == "ambient") {
       String a_temp;
@@ -191,7 +238,6 @@ void loop() {
     char s_ambient_temp[8];
     char s_target_temp[8];
     char s_current_temp[8];
-  
 
     
     dtostrf(current_temp, 6, 2, s_current_temp);
@@ -201,40 +247,52 @@ void loop() {
 
     delay(500);
 
-    heat_dur_sec = abs(target_temp - current_temp);
+    int temp_diff = abs(target_temp - current_temp);
 
-    if(heat_dur_sec < 1) {
+    heat_dur_sec = temp_diff;
+    
+    if(temp_diff < 1) {
       heat_dur_sec = 1;
-    } else if (heat_dur_sec > 5) {
+    } else if (temp_diff > 5) {
       heat_dur_sec = 5;
     }
-
-    sprintf(buff, "%s\t%s\t%s\t%d", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec);
-    
-    Serial.println(buff);
-  
 
     if (current_temp < target_temp) {
       // Move this logic to inside heat function
       if (current_temp >= (ambient_temp - 1)) {
-        heat(false);
+        suppress = false;
       } else {
-        heat(true);
+        suppress = true;
       }
+
+      heat(suppress);
+
+      
     } else {
       // Move this logic to inside cool function
       if (current_temp >= (ambient_temp + 1)) {
-        cool(true);
+        suppress = true;
       } else {
-        cool(false);
+        suppress = false;
       }
+
+      cool(suppress);      
     }
+
+    if(suppress) {
+      sprintf(buff, "%s\t%s\t%s\t%d\t%d\tY", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
+    } else {
+      sprintf(buff, "%s\t%s\t%s\t%d\t%d\tN", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
+    }
+
+    Serial.println(buff);
 
   } else {
     current_temp = get_current_temperature();
     Serial.print(F("Idle: "));
     Serial.print(current_temp);
     Serial.println(F("C"));
-    delay(1000);
-  }
+    delay(1000); }
+
 }
+ 
