@@ -57,6 +57,9 @@ void stop() {
   analogWrite(PIN_HEAT, 0);
 }
 
+/**
+ * Just move all power level logic to here
+ */
 void getHeatCoolPower(int temp_diff)
 {
 
