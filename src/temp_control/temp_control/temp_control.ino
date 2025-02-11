@@ -41,6 +41,9 @@ int status = STOPPED;
 int heat_dur_sec = 1;
 int heat_pwr_level = 255;
 
+int is_heating = 0;
+int is_cooling = 0;
+
 // Temperature reading
 int samples[NUMSAMPLES], n;
 float average;
@@ -57,61 +60,42 @@ void stop() {
 void getHeatCoolPower(int temp_diff)
 {
 
+  if(temp_diff > 10) {
+    heat_dur_sec = 1;
+    heat_pwr_level = 255;
+  } else if (temp_diff > 5 && temp_diff <= 10) {
+    heat_dur_sec = 1;
+    heat_pwr_level = 240;
+  } else {
+    heat_dur_sec = 1;
+    heat_pwr_level = 200;
+  }
 
-  switch (temp_diff) {
-    case 5:
-      heat_dur_sec = 1;
-      heat_pwr_level = 255;
-      break;
-    case 4:
-      heat_dur_sec = 1;
-      heat_pwr_level = 255;
-      break;
-    case 3:
-      heat_dur_sec = 1;
-      heat_pwr_level = 255;
-      break;
-    case 2:
-      heat_dur_sec = 1;
-      heat_pwr_level = 225;
-      break;
-    default:
-      heat_dur_sec = 1;
-      heat_pwr_level = 225;
-      break;
-    }
   
 }
 
 /*
   Turn on heating
 */
-void heat(bool suppress) {
-  getHeatCoolPower(heat_dur_sec);
-  //Serial.print("PW: ");
-  //Serial.println(heat_pwr_level);
-  analogWrite(PIN_COOL, 0);
-  if (!suppress) {
+void heat() {
+  if(is_heating == 0) {
+    is_heating = 1;
+    analogWrite(PIN_COOL, 0);
     analogWrite(PIN_HEAT, heat_pwr_level);
   }
-
-  delay(heat_dur_sec * 1000);
-  analogWrite(PIN_HEAT, 0);
+  is_cooling = 0;
 }
 
 /*
   Turn on cooling
 */
-void cool(bool suppress) {
-  getHeatCoolPower(heat_dur_sec);
-  //Serial.print("PW: ");
-  //Serial.println(heat_pwr_level);
-  analogWrite(PIN_HEAT, 0);
-  if (!suppress) {
+void cool() {
+  if(is_cooling == 0) {
+    is_cooling = 1;
+    analogWrite(PIN_HEAT, 0);
     analogWrite(PIN_COOL, heat_pwr_level);
-  } 
-  delay(heat_dur_sec * 1000);
-  analogWrite(PIN_COOL, 0);
+  }
+  is_heating = 0;
 }
 
 /*
@@ -135,7 +119,7 @@ float get_current_temperature() {
   /*
   tempTherm = 0.000000000000000000000000312559145621717 * pow(logrTherm , 6) 
             - 0.000000000000000000044153755786489 * pow(logrTherm , 5) 
-            + 0.00000000000000252921232833742 * pow(logrTherm , 4) 
+            + 0.00000000000000252921232833742 * pow(logrTherm , 4225) 
             - 0.0000000000759528833550828 * pow(logrTherm , 3) 
             + 0.00000130404854263673 * pow(logrTherm , 2) 
             - 0.0137601358467662 * pow(logrTherm , 1) 
@@ -248,40 +232,18 @@ void loop() {
 
     delay(500);
 
-    int temp_diff = abs(target_temp - current_temp);
+    int temp_diff = abs(target_temp - ambient_temp);
 
-    heat_dur_sec = temp_diff;
-    
-    if(temp_diff < 1) {
-      heat_dur_sec = 1;
-    } else if (temp_diff > 5) {
-      heat_dur_sec = 5;
-    }
+    getHeatCoolPower(temp_diff);
 
-    if (current_temp < target_temp) {
-      // Move this logic to inside heat function
-      if (current_temp >= (ambient_temp - 1)) {
-        suppress = false;
-      } else {
-        suppress = true;
-      }
-
-      heat(suppress);
-
-      
+    if(current_temp < target_temp) {
+      heat();
     } else {
-      // Move this logic to inside cool function
-      if (current_temp >= (ambient_temp + 1)) {
-        suppress = true;
-      } else {
-        suppress = false;
-      }
-
-      cool(suppress);      
+      cool();
     }
 
     if(suppress) {
-      sprintf(buff, "%s\t%s\t%s\t%d\t%d\tY", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
+      sprintf(buff, "%s\t%s\t%s\t%d\t%d\tN", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
     } else {
       sprintf(buff, "%s\t%s\t%s\t%d\t%d\tN", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
     }
