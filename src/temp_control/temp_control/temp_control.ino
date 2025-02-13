@@ -80,6 +80,7 @@ void adjustPeltPower()
 */
 void heat() 
 {
+  
   adjustPeltPower();
   
   if(is_heating == 0) {
@@ -94,7 +95,10 @@ void heat()
   Turn on cooling
 */
 void cool() 
-{
+{  
+  
+  adjustPeltPower();
+  
   if(is_cooling == 0) {
     is_cooling = 1;
     analogWrite(PIN_HEAT, 0);
