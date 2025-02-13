@@ -6,14 +6,19 @@
   Serial Commands at Baud 115200
 
   start target_temp     // Start the heating/cooling cycles to obtain target temperature in C
-  ambient ambient_temp  // Set the ambient temperature in C
   stop                  // Stop the heating/cooling cycle, idle
+
+
+  Dev Notes:
+    - Could introduce a general temp offset value.
 
 **/
 
 // Control
 #define RUNNING 1
 #define STOPPED 0
+#define HEATING 1
+#define COOLING 0
 
 // Sampling
 #define NUMSAMPLES 20
@@ -24,22 +29,16 @@
 #define PIN_ENABLE 4
 #define PIN_TEMP A0
 
-// Heat control
-#define HEAT_DUR_SEC 1
-
 // Calculations
 #define aref_voltage 3.349
 #define rRef 11600  // 9kOhm
 
-
 String commands;
 float current_temp = 0;
 float target_temp = 0;
-float ambient_temp = -100;
 int status = STOPPED;
 
-int heat_dur_sec = 1;
-int heat_pwr_level = 255;
+int pelt_pwr_level = 255;
 
 int is_heating = 0;
 int is_cooling = 0;
@@ -49,42 +48,44 @@ int samples[NUMSAMPLES], n;
 float average;
 float rTherm, logrTherm, tempTherm;
 
+// Usage instructions
+void showUsage()
+{
+  Serial.println(F("Usage:"));
+  Serial.println(F("\tstart target_temp_in_C"));
+  Serial.println(F("\tstop"));
+}
+
 /*
   Stop the heating/cooling cycle
 */
-void stop() {
+void stop() 
+{
   analogWrite(PIN_COOL, 0);
   analogWrite(PIN_HEAT, 0);
 }
 
-/**
- * Just move all power level logic to here
- */
-void getHeatCoolPower(int temp_diff)
+/*
+  Establish the voltage level of the peltier.
+*/
+void getHeatCoolPower()
 {
-
-  if(temp_diff > 10) {
-    heat_dur_sec = 1;
-    heat_pwr_level = 255;
-  } else if (temp_diff > 5 && temp_diff <= 10) {
-    heat_dur_sec = 1;
-    heat_pwr_level = 240;
-  } else {
-    heat_dur_sec = 1;
-    heat_pwr_level = 200;
-  }
-
-  
+  float t = abs(current_temp - target_temp);
+  pelt_pwr_level = (((int)t * 20) + 155);
+  pelt_pwr_level = max(pelt_pwr_level,255);  
 }
 
 /*
   Turn on heating
 */
-void heat() {
+void heat() 
+{
+  getHeatCoolPower();
+  
   if(is_heating == 0) {
     is_heating = 1;
     analogWrite(PIN_COOL, 0);
-    analogWrite(PIN_HEAT, heat_pwr_level);
+    analogWrite(PIN_HEAT, pelt_pwr_level);
   }
   is_cooling = 0;
 }
@@ -92,11 +93,12 @@ void heat() {
 /*
   Turn on cooling
 */
-void cool() {
+void cool() 
+{
   if(is_cooling == 0) {
     is_cooling = 1;
     analogWrite(PIN_HEAT, 0);
-    analogWrite(PIN_COOL, heat_pwr_level);
+    analogWrite(PIN_COOL, pelt_pwr_level);
   }
   is_heating = 0;
 }
@@ -104,7 +106,9 @@ void cool() {
 /*
   Get the current temperature
 */
-float get_current_temperature() { 
+float getCurrentTemperature() 
+{ 
+  
   average = 0;
 
   for (n = 1; n < NUMSAMPLES; n++) {
@@ -113,22 +117,12 @@ float get_current_temperature() {
   }
 
   average /= NUMSAMPLES;
-
+  
   rTherm = rRef / (1024 / average - 1);
-
+  
   logrTherm = rTherm;
   
- 
-  /*
-  tempTherm = 0.000000000000000000000000312559145621717 * pow(logrTherm , 6) 
-            - 0.000000000000000000044153755786489 * pow(logrTherm , 5) 
-            + 0.00000000000000252921232833742 * pow(logrTherm , 4225) 
-            - 0.0000000000759528833550828 * pow(logrTherm , 3) 
-            + 0.00000130404854263673 * pow(logrTherm , 2) 
-            - 0.0137601358467662 * pow(logrTherm , 1) 
-            + 96.356373987591;
-  */
-  
+  // Thermistor specific
   tempTherm = 0.000000000000000000000000312559 * pow(logrTherm , 6) 
             - 0.000000000000000000044153755786 * pow(logrTherm , 5) 
             + 0.00000000000000252921232833742 * pow(logrTherm , 4) 
@@ -137,14 +131,14 @@ float get_current_temperature() {
             - 0.0137601358467662 * pow(logrTherm , 1) 
             + 96.356373987591;
 
-  
   return (tempTherm);
 }
 
 /*
   Controller initialization
 */
-void setup() {
+void setup() 
+{
   Serial.begin(115200);
 
   pinMode(PIN_COOL, OUTPUT);
@@ -153,91 +147,63 @@ void setup() {
 
   digitalWrite(PIN_ENABLE, HIGH);  // No idea what this does, try to remove
 
+  // This string must start with CNCO2 and each temp controller should have a number
   Serial.println(F("CNCO2 HEATER 1"));
   delay(1000);
   stop();
 }
 
-void loop() {
-  bool suppress = false;
-  
+/*
+  Main Loop
+*/
+void loop() 
+{
   if (Serial.available()) {
+    
     commands = Serial.readString();
     commands.trim();
 
     if (commands.substring(0, 5) == "start") {
+      
       String t_temp;
       t_temp = commands.substring(6);
       t_temp.trim();
 
       if (t_temp == "") {
-        t_temp = "0";
+        showUsage();
+      } else {
+        Serial.print(F("Setting target temp: "));
+        Serial.print(t_temp);
+        Serial.println(F("C"));
+  
+        target_temp = t_temp.toFloat();
+  
+        Serial.println(F("Starting"));
+        Serial.println(F("Targ  \tCurr  \tPwr"));
+        status = RUNNING;
       }
-
-      Serial.print(F("Setting target temp: "));
-      Serial.print(t_temp);
-      Serial.println(F("C"));
-
-      target_temp = t_temp.toFloat();
-      if(ambient_temp == -100) {
-        ambient_temp = get_current_temperature();
-      }
-
-      
-      Serial.println(F("Starting"));
-      Serial.println(F("Amb   \tTarg  \tCurr  \tDelay  \tPwr  \tS"));
-      status = RUNNING;
-    } else if (commands.substring(0, 7) == "ambient") {
-      String a_temp;
-      a_temp = commands.substring(8);
-      a_temp.trim();
-
-      if (a_temp == "") {
-        a_temp = "30";
-      }
-
-      ambient_temp = a_temp.toFloat();
-
-      Serial.print(F("Ambient Temp: "));
-      Serial.print(ambient_temp);
-      Serial.println(F("C"));
-
     } else if (commands == "stop") {
       Serial.println(F("Stopping"));
       stop();
       status = STOPPED;
     } else {
-      Serial.print(F("Unknown Command '"));
-      Serial.print(commands);
-      Serial.println(F("'"));
-      Serial.println(F("Usage:"));
-      Serial.println(F("\tstart target_temp_in_C"));
-      Serial.println(F("\tambient ambient_temp_in_C"));
-      Serial.println(F("\tstop"));
+      showUsage();
     }
     delay(1000);
   }
 
   if (status == RUNNING) {
-    current_temp = get_current_temperature();
+    current_temp = getCurrentTemperature();
 
     char buff[30];
 
-    char s_ambient_temp[8];
     char s_target_temp[8];
     char s_current_temp[8];
 
-    
     dtostrf(current_temp, 6, 2, s_current_temp);
-    dtostrf(ambient_temp, 6, 2, s_ambient_temp);
     dtostrf(target_temp, 6, 2, s_target_temp);
 
-
     delay(500);
-
-    int temp_diff = abs(target_temp - ambient_temp);
-
-    getHeatCoolPower(temp_diff);
 
     if(current_temp < target_temp) {
       heat();
@@ -245,20 +211,16 @@ void loop() {
       cool();
     }
 
-    if(suppress) {
-      sprintf(buff, "%s\t%s\t%s\t%d\t%d\tN", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
-    } else {
-      sprintf(buff, "%s\t%s\t%s\t%d\t%d\tN", s_ambient_temp, s_target_temp, s_current_temp, heat_dur_sec, heat_pwr_level); 
-    }
-
+    sprintf(buff, "%s\t%s\t%d\t%d", s_target_temp, s_current_temp, pelt_pwr_level); 
     Serial.println(buff);
 
   } else {
-    current_temp = get_current_temperature();
+    current_temp = getCurrentTemperature();
     Serial.print(F("Idle: "));
     Serial.print(current_temp);
     Serial.println(F("C"));
-    delay(1000); }
+    delay(1000); 
+  }
 
 }
  
