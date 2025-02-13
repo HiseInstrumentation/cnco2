@@ -68,11 +68,11 @@ void stop()
 /*
   Establish the voltage level of the peltier.
 */
-void getHeatCoolPower()
+void adjustPeltPower()
 {
   float t = abs(current_temp - target_temp);
   pelt_pwr_level = (((int)t * 20) + 155);
-  pelt_pwr_level = max(pelt_pwr_level,255);  
+  pelt_pwr_level = min(pelt_pwr_level,255);  
 }
 
 /*
@@ -80,7 +80,7 @@ void getHeatCoolPower()
 */
 void heat() 
 {
-  getHeatCoolPower();
+  adjustPeltPower();
   
   if(is_heating == 0) {
     is_heating = 1;
