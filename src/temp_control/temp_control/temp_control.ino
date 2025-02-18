@@ -72,6 +72,9 @@ void adjustPeltPower()
 {
   float t = abs(current_temp - target_temp);
   pelt_pwr_level = (((int)t * 20) + 155);
+
+  pelt_pwr_level = (((int)t * 31) + 100);
+  
   pelt_pwr_level = min(pelt_pwr_level,255);  
 }
 
@@ -203,7 +206,7 @@ void loop()
 
     char s_target_temp[8];
     char s_current_temp[8];
-
+    
     dtostrf(current_temp, 6, 2, s_current_temp);
     dtostrf(target_temp, 6, 2, s_target_temp);
 
@@ -215,7 +218,7 @@ void loop()
       cool();
     }
 
-    sprintf(buff, "%s\t%s\t%d\t%d", s_target_temp, s_current_temp, pelt_pwr_level); 
+    sprintf(buff, "%s\t%s\t%d", s_target_temp, s_current_temp, pelt_pwr_level); 
     Serial.println(buff);
 
   } else {
