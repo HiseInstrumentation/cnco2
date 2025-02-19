@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
 	# Connect to COM for sensor
 	o2 = cnco2.O2Sensor()
-	o2.initialize('/dev/ttyUSB1', 19200)
+	o2.initialize('/dev/ttyUSB2', 19200)
 
 	# Connect to gantry controller
 	gantry = cnco2.Gantry()
@@ -64,4 +64,6 @@ if __name__ == '__main__':
 				cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
 
 	gantry.findHome()
+	time.sleep(5)
+	gantry.close()
 	cnco2.Logging.write("Job Complete", True)

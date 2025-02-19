@@ -299,6 +299,10 @@ class Storage:
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
+        o2_val = o2_val.replace(",", "")
+        temp_val = temp_val.replace(",", "")
+        pressure_val = pressure_val.replace(",", "")
+
         sql = "insert into sample_store values ('"+batch_access_key+"', "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', "+str(sample_type) + ",'"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
         cur.execute(sql)
         con.commit()
@@ -328,8 +332,6 @@ class Gantry:
     def findHome(self):
         Logging.write("Finding Home", True)
         commands = []
-        # commands.append(b'$H X\n')
-        # commands.append(b'$H Y\n')        
         commands.append(b'$H\n')
         self.runCommands(commands)
         time.sleep(10)
@@ -338,33 +340,89 @@ class Gantry:
     def connect(self, serial_port, baud_rate):
         self.gantry_serial = serial.Serial(serial_port, baud_rate)
         Logging.write("Connecting to gantry on "+serial_port+" Baud Rate:"+str(baud_rate), True)
-        time.sleep(3)
         commands = []
-        commands.append(b'$5=7\n')   # Treat switches as normally open
-        commands.append(b'$21=1\n')  # Enable physical limit switches
+        commands.append(b'$0=10.0\n')
+        commands.append(b'$1=255\n')
+        commands.append(b'$2=0\n')
         commands.append(b'$3=3\n')   # Reverse axis
+        commands.append(b'$4=0\n')
+        commands.append(b'$5=7\n')   # Treat switches as normally open
+        commands.append(b'$6=1\n')
+        commands.append(b'$8=0\n')
+        commands.append(b'$9=1\n')
+        commands.append(b'$10=511\n')
+        commands.append(b'$21=1\n')  # Enable physical limit switches
         commands.append(b'$22=1\n')  # Enable homing
-        commands.append(b'G21\n')    # Metric mm
-        commands.append(b'G90\n')    # Absolute mode
+        commands.append(b'$23=7\n')
+        commands.append(b'$25=1500.0\n')
+        commands.append(b'$27=5.000\n')
+        commands.append(b'$28=0.100\n')
+        commands.append(b'$29=0.0\n')
+        commands.append(b'$30=1000.000\n')
+        commands.append(b'$31=0.000\n')
+        commands.append(b'$32=1\n')
+        commands.append(b'$33=5000.0\n')
+        commands.append(b'$34=0.0\n')
+        commands.append(b'$35=0.0\n')
+        commands.append(b'$36=100.0\n')
+        commands.append(b'$100=57.14000\n')
+        commands.append(b'$101=57.14000\n')
+        commands.append(b'$102=57.14000\n')
+        commands.append(b'$110=5000.000\n')
+        commands.append(b'$111=5000.000\n')
+        commands.append(b'$112=5000.000\n')
+        commands.append(b'$120=500.000\n')
+        commands.append(b'$121=500.000\n')
+        commands.append(b'$122=500.000\n')
+        commands.append(b'$130=300.000\n')
+        commands.append(b'$131=300.000\n')
+        commands.append(b'$132=70.000\n')
+        commands.append(b'$320=grblHAL\n')
+        commands.append(b'$341=0\n')
+        commands.append(b'$342=30.0\n')
+        commands.append(b'$343=25.0\n')
+        commands.append(b'$344=200.0\n')
+        commands.append(b'$345=200.0\n')
+        commands.append(b'$346=1\n')
+        commands.append(b'$384=0\n')
+        commands.append(b'$394=4.0\n')
+        commands.append(b'$396=30\n')
+        commands.append(b'$397=0\n')
+        commands.append(b'$398=100\n')
+        commands.append(b'$481=0\n')
+        commands.append(b'$484=1\n')
+        commands.append(b'$486=0\n')
+        commands.append(b'$650=0\n')
+        commands.append(b'$673=1.0\n')
         
+        time.sleep(3)
+
         self.runCommands(commands)
         
     def runCommands(self, commands):
         for c in commands:
             self.gantry_serial.write(c)
             Logging.write(c.decode('utf-8'))
+            time.sleep(.5)
+            try:
+                Logging.write(self.gantry_serial.read_all().decode('utf-8'))
+            except UnicodeDecodeError:
+                Logging.write("Failed to read")
+				
             time.sleep(1)
-            Logging.write(self.gantry_serial.read_all().decode('utf-8'))
-            time.sleep(2)
         
     def moveTo(self, x, y):
         commands = []
-        commands.append(bytes('G00 X'+str(x)+' Y'+str(y)+'\n', 'utf-8'))
+#        commands.append(bytes('G00 X'+str(x)+' Y'+str(y)+'\n', 'utf-8'))
+        commands.append(bytes('$J=G90 G21 X'+str(x)+' Y'+str(y)+' F2050\n', 'utf-8'))
         self.runCommands(commands)
         
     def initialize(self, serial_port, baud_rate):
         self.connect(serial_port, baud_rate)
         self.findHome()
+        
+    def close(self):
+        self.gantry_serial.close()		
         
 class O2SensorReading:
     o2_pct = ""
