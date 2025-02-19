@@ -33,10 +33,14 @@
 #define aref_voltage 3.349
 #define rRef 11600  // 9kOhm
 
+#define MODE_DEBUG 0
+#define MODE_RUN 1
+
 String commands;
 float current_temp = 0;
 float target_temp = 0;
 int status = STOPPED;
+int op_mode = MODE_RUN;
 
 int pelt_pwr_level = 255;
 
@@ -52,8 +56,12 @@ float rTherm, logrTherm, tempTherm;
 void showUsage()
 {
   Serial.println(F("Usage:"));
-  Serial.println(F("\tstart target_temp_in_C"));
-  Serial.println(F("\tstop"));
+  Serial.println(F("\tstart target_temp_in_C (Starts controller to reach target temp)"));
+  Serial.println(F("\tstop (Stops the controller and returns to ambient temp)"));
+  Serial.println(F("\tdebug on (Turns on debug mode)"));
+  Serial.println(F("\tdebug off (Turns off debug mode)"));
+  Serial.println(F("\tstat (Get the current temperature status)"));
+  
 }
 
 /*
@@ -76,6 +84,18 @@ void adjustPeltPower()
   pelt_pwr_level = (((int)t * 31) + 100);
   
   pelt_pwr_level = min(pelt_pwr_level,255);  
+}
+
+void showCurrentStatus() {
+  char buff[30];
+  char s_target_temp[8];
+  char s_current_temp[8];
+    
+  dtostrf(current_temp, 6, 2, s_current_temp);
+  dtostrf(target_temp, 6, 2, s_target_temp);
+
+  sprintf(buff, "%s\t%s\t%d", s_target_temp, s_current_temp, pelt_pwr_level); 
+  Serial.println(buff);
 }
 
 /*
@@ -179,20 +199,28 @@ void loop()
       if (t_temp == "") {
         showUsage();
       } else {
-        Serial.print(F("Setting target temp: "));
-        Serial.print(t_temp);
-        Serial.println(F("C"));
-  
         target_temp = t_temp.toFloat();
-  
-        Serial.println(F("Starting"));
-        Serial.println(F("Targ  \tCurr  \tPwr"));
+
+        if(op_mode == MODE_DEBUG) {
+          Serial.print(F("Setting target temp: "));
+          Serial.print(t_temp);
+          Serial.println(F("C"));
+          Serial.println(F("Starting"));
+          Serial.println(F("Targ  \tCurr  \tPwr"));
+        }
+
         status = RUNNING;
       }
     } else if (commands == "stop") {
       Serial.println(F("Stopping"));
       stop();
       status = STOPPED;
+    } else if (commands == "debug on") {
+      op_mode = MODE_DEBUG;
+    } else if (commands == "debug off") {
+      op_mode = MODE_RUN;
+    } else if (commands == "stat") {
+      showCurrentStatus(); 
     } else {
       showUsage();
     }
@@ -219,13 +247,17 @@ void loop()
     }
 
     sprintf(buff, "%s\t%s\t%d", s_target_temp, s_current_temp, pelt_pwr_level); 
-    Serial.println(buff);
+    if(op_mode == MODE_DEBUG) {
+      Serial.println(buff);
+    }
 
   } else {
     current_temp = getCurrentTemperature();
-    Serial.print(F("Idle: "));
-    Serial.print(current_temp);
-    Serial.println(F("C"));
+    if(op_mode == MODE_DEBUG) {
+      Serial.print(F("Idle: "));
+      Serial.print(current_temp);
+      Serial.println(F("C"));
+    }
     delay(1000); 
   }
 

@@ -2,7 +2,7 @@ import serial
 import time
 import re
 
-sensor = serial.Serial("/dev/ttyUSB2", 19200)
+sensor = serial.Serial("/dev/ttyUSB4", 19200)
 
 time.sleep(2);
 
