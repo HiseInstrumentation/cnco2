@@ -1,5 +1,6 @@
 """
 Copyright 2024, Hise Scientific Instrumentation, LLC
+Griffin Lab
 
 cnco2_run.py
 

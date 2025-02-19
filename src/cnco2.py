@@ -261,8 +261,17 @@ class SampleUnit:
     SAMPLE_TYPE_REG = 0
     SAMPLE_TYPE_CTL = 1
     SAMPLE_TYPE_BLNK = 2
-
+'''
+class SystemComponent:
+    componentType = ""
+    componentId = ""
+    comPort = ""
+'''
 class System:
+    #compTempController[]
+    #compGantry
+    #compO2Sensor
+
 
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
@@ -292,7 +301,29 @@ class System:
         
         res = cur.execute("update cnco2_system set is_running = 0")
         con.commit()
+    
+    '''
+    # Find temp controllers, gantry and o2 sensor
+    def discoverComponents():
+        all_port = serial.tools.list_ports.comports()
+        Logging.write("Polling for devices")
 
+        for port in all_port:
+            print("*", end="")
+            try:
+                dev = serial.Serial(port.device, 115200, timeout=4)
+                dev.reset_input_buffer()
+                time.sleep(2)
+                response = dev.readline().decode('utf-8').strip()
+                if(response[0:5] == "CNCO2"):
+                    heater_name = response[6:]
+                    print("\nFound Heater at " + port.device + ": " + heater_name + "\n")
+                    
+
+            except serial.serialutil.SerialException:
+                print(".", end='')
+    '''
+    
 class Storage:
     def write(self, batch_access_key, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
         con = sqlite3.connect("cnco2_data.db")
