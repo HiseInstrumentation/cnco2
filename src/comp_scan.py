@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import serial
 import serial.tools.list_ports
 import time
@@ -8,9 +10,13 @@ print("Scanning for components")
 for port in all_port:
     print(port.device)
 
+for port in all_port:
+    print("Checking ", end='')
+    print(port.device)
+
     try:
         # First connect at 115200 for temp controllers and gantry
-        dev = serial.Serial(port.device, 115200, timeout=3)
+        dev = serial.Serial(port.device, 115200, timeout=4)
         dev.reset_input_buffer()
         time.sleep(2)
         response = dev.readline().decode('utf-8').strip()
@@ -19,7 +25,7 @@ for port in all_port:
             print("\nFound temp controller at " + port.device + ": " + device_name + "\n")
         else:
             dev.write(b'?\n')
-            time.sleep(1)
+            time.sleep(2)
             response = dev.readline().decode('utf-8').strip()
             if(response[0:5] == "<Idle"):
                print("\nFound Gantry at " + port.device + "\n")
@@ -31,7 +37,7 @@ for port in all_port:
         dev.reset_input_buffer()
         time.sleep(2)
         dev.write(b'I\n')
-        time.sleep(1.5)
+        time.sleep(2)
         response = dev.readline().decode('utf-8').strip()
         if(response[0:9] == "ID:Oxygen"):
             heater_name = response[6:]
