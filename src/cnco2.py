@@ -261,15 +261,16 @@ class System:
         ip_address = '127.0.0.1'        
 
         try:
+            
             d = str(urlopen('http://checkip.dyndns.com/', timeout=10).read())
             ip_address = r.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(d).group(1)
         except  HTTPError as error:
-            print('HTTP Error: Data of %s not retrieved because %s\nURL: %s', name, error, url)
+            print('HTTP Error: Data not retrieved because %s\nURL: %s', error, url)
         except URLError as error:
             if(isinstance(error.reason, timeout)):
                 print("Error timeout")
             else:
-                print('URL Error:  Data of %s not retrieved because %s\nURL: %s', name, error, url)
+                print('URL Error:  Data not retrieved because %s\nURL: %s', error, url)
      
         return ip_address
 
@@ -297,9 +298,14 @@ class System:
                     response = dev.readline().decode('utf-8').strip()
                     if(response[0:5] == "<Idle"):
                         print("\nFound Gantry at " + port.device + "\n")
+            except UnicodeDecodeError:
+                continue
+            except serial.serialutil.SerialException:
+                print(".", end='')
 
                 dev.close()
-
+                
+            try:
                 # Second connect at 19200 for o2 sensor
                 dev = serial.Serial(port.device, 19200, timeout=4)
                 dev.reset_input_buffer()
@@ -501,8 +507,25 @@ class O2Sensor:
 
         return return_value
 
-class Logging:
-    
+class TempController:
+    controller_serial = ""
+    name = ""
+
+    def initialize(self, serial_port, baud_rate):
+        self.connect(serial_port, baud_rate)
+        
+    def connect(self, serial_port, baud_rate):
+        Logging.write("Connecting to Temp Controller on "+serial_port+" Baud Rate:"+str(baud_rate), True)
+        try:
+            self.sensor_serial = serial.Serial(serial_port, baud_rate)
+            return True
+        except serial.serialutil.SerialException:
+            Logging.write("Could not connect to temp controller")
+            System.stop()
+            return False
+            
+
+class Logging:    
     def write(message, echo = False ):
         pre_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
         log_file = open('cnco2_log.txt', 'a')
@@ -520,6 +543,6 @@ class Logging:
 def getAbout():
     version = System.getVersion()
     print("#######################################################")
-    print("     CNCO2 V"+version+"                                ")
-    print("     Griffin Lab, 2024                                 ")
+    print("     CNCO2 V "+version)
+    print("     Griffin Lab, 2024")
     print("#######################################################")

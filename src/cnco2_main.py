@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import cnco2
 import sys
 import sqlite3
@@ -7,7 +9,10 @@ user_commands = ['get_version', 'discover_components', 'get_ip']
 if __name__ == '__main__':
     cnco2.getAbout()
 
-    commands = sys.argv[1]
+    try:
+        commands = sys.argv[1]
+    except IndexError:
+        commands = 'help'
 
     match commands:
         case 'get_version':
