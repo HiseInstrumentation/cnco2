@@ -2,10 +2,12 @@
 
 function getIpAddress()
 {
-	$matches = array();
-	$res = exec("ifconfig | grep 'inet 192'");
-	preg_match("/192\.168\.[0-9]*\.[0-9]*/", $res, $matches);
-	return $matches[0];
+    $db = new SQLite3("../src/cnco2.db");
+    $res = $db->query("select ip_address from cnco2_system");
+    $row = $res->fetchArray();
+    
+    return $row['ip_address'];
+
 }
 
 function getAllBatches()
