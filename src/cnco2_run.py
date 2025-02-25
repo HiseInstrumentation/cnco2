@@ -40,6 +40,7 @@ if __name__ == '__main__':
 	for sample_set in batch.sampleSets:
 		sample_set.initializePlan()
 
+    # @TODO: Replace with system.dicsovercomponents
 	# Connect to COM for sensor
 	o2 = cnco2.O2Sensor()
 	o2.initialize('/dev/ttyUSB2', 19200)

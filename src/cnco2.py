@@ -234,6 +234,10 @@ class System:
     #compGantry
     #compO2Sensor
 
+    # Before any run can be executed, this must be called
+    def initialize():
+        ip_address = System.getIp()
+        cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0, prepared_to_run = 0, ip_address = '"+ip_address+"'")
 
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
@@ -246,8 +250,14 @@ class System:
 
     def start():
         Logging.write("Starting System")
-        res = cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 1")
-        
+        res = cnco2_data.CNCSystemDB.getOne("select prepared_to_run from cnco2_system")
+        if(res['prepared_to_run'] == 1):
+            res = cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 1")
+            return True
+        else:
+            print("System not prepared for run")
+            return False
+
     def stop():
         Logging.write("Stopping System")
         res = cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0")
