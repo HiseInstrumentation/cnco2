@@ -17,15 +17,12 @@ import re as r
 from socket import timeout
 from urllib.error import HTTPError, URLError
 import serial.tools.list_ports
+import cnco2_data
 
 class BatchRuns:
     
     def hasRun(self, batch_access_key):
-        con = sqlite3.connect("cnco2_data.db")
-        con.row_factory = sqlite3.Row
-        
-        cur = con.cursor()
-        res = cur.execute("select count(*) cnt from sample_store where batch_access_key = '"+batch_access_key+"'").fetchone()
+        res = cnco2_data.CNCDataDB.getOne("select count(*) cnt from sample_store where batch_access_key = '"+batch_access_key+"'")
         cnt = res['cnt']
         
         if(cnt == 0):
@@ -35,26 +32,16 @@ class BatchRuns:
         
     
     def archiveAndClear(self, batch_access_key):
-        con = sqlite3.connect("cnco2_data.db")
-        con.row_factory = sqlite3.Row
-        
-        cur = con.cursor()
-        cur.execute("insert into sample_store_archive select datetime('now', 'localtime'), batch_access_key, x_pos, y_pos, o2_value, temp_value, pressure_value, status, sample_type, collected from sample_store where batch_access_key = '"+batch_access_key+"'")
-        con.commit()
-        
-        cur.execute("delete from sample_store where batch_access_key = '"+batch_access_key+"'")
-        con.commit()
+        cnco2_data.CNCDataDB.execute("insert into sample_store_archive select datetime('now', 'localtime'), batch_access_key, x_pos, y_pos, o2_value, temp_value, pressure_value, status, sample_type, collected from sample_store where batch_access_key = '"+batch_access_key+"'")
+        cnco2_data.CNCDataDB.execute("delete from sample_store where batch_access_key = '"+batch_access_key+"'")
         
     
     def getAll(self):
         batches = []
-        
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        
+                
         # Get batch template for this template_id
-        cur = con.cursor()
-        res = cur.execute("select access_key from batch order by created desc").fetchall()
+        res = cnco2_data.CNCSystemDB.getAll("select access_key from batch order by created desc")
+        
         for row in res:
             temp_b = BatchRuns().getByAccessKey(row['access_key'])
             batches.append(temp_b)
@@ -65,14 +52,9 @@ class BatchRuns:
         # Needed for the new batch access key
         seed = str(round(time.time() * 1000))
         b_seed = hashlib.md5(seed.encode('utf-8'))
-        
-        # Connect to DB
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        
+
         # Get batch template for this template_id
-        cur = con.cursor()
-        res = cur.execute("select * from template_batch where access_key = '"+template_access_key+"'").fetchone()
+        res = cnco2_data.CNCSystemDB.getOne("select * from template_batch where access_key = '"+template_access_key+"'")
         new_description = res['description']
         new_name = res['name']        
         if t_new_name == "":
@@ -83,12 +65,10 @@ class BatchRuns:
         new_access_key = b_seed.hexdigest()
         
         # Create new batch db record from template values
-        cur1 = con.cursor()
-        res = cur1.execute("insert into batch (created, access_key, name, description) values (datetime('now', 'localtime'), '"+new_access_key+"', '"+new_name+"', '"+new_description+"')")
-        con.commit()
+        cnco2_data.CNCSystemDB.excute("insert into batch (created, access_key, name, description) values (datetime('now', 'localtime'), '"+new_access_key+"', '"+new_name+"', '"+new_description+"')")
 
         # Get sample set templates
-        res = cur.execute("select * from template_sample_set where t_batch_access_key = '"+template_access_key+"'").fetchall()
+        res = cnco2_data.CNCSystemDB.getAll("select * from template_sample_set where t_batch_access_key = '"+template_access_key+"'")
 
         # Create new sample sets based on templates
         for tss in res:
@@ -106,20 +86,13 @@ class BatchRuns:
             new_temp_enable = tss['temp_enable']
             new_temp_target = tss['temp_target']
 
-            cur.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing, ctl_x, ctl_y, blnk_x, blnk_y, temp_enable, temp_target) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+", "+str(new_ctl_x)+", "+str(new_ctl_y)+", "+str(new_blnk_x)+", "+str(new_blnk_y)+","+str(new_temp_enable)+", "+str(new_temp_target)+")")
-            con.commit()
-
-        con.close()
+            cnco2_data.CNCSystemDB.execute("insert into sample_set (batch_access_key, name, home_x, home_y, row_count, col_count, row_spacing, col_spacing, ctl_x, ctl_y, blnk_x, blnk_y, temp_enable, temp_target) values ('"+new_access_key+"', '"+new_name+"', "+str(new_home_x)+", "+str(new_home_y)+", "+str(new_row_count)+", "+str(new_col_count)+", "+str(new_row_spacing)+", "+str(new_col_spacing)+", "+str(new_ctl_x)+", "+str(new_ctl_y)+", "+str(new_blnk_x)+", "+str(new_blnk_y)+","+str(new_temp_enable)+", "+str(new_temp_target)+")")
 
         # Return new batch access key
         return new_access_key		
         
     def getByAccessKey(self, access_key):
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
-
-        res = cur.execute("select * from batch where access_key = '"+access_key+"'").fetchone()
+        res = cnco2_data.CNCSystemDB.getOne("select * from batch where access_key = '"+access_key+"'")
     
         if(res == None):
             return(BatchRun())
@@ -145,12 +118,8 @@ class BatchTemplate:
 class BatchTemplates:
     
     def getAll():
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
         templates = []
-        
-        temps = cur.execute("select access_key from template_batch order by name").fetchall()
+        temps = cnco2_data.CNCSystemDB.getAll("select access_key from template_batch order by name")
         
         for temp in temps:
             templates.append(BatchTemplates.getByAccessKey(temp['access_key']))
@@ -159,12 +128,8 @@ class BatchTemplates:
         return templates
  
     def getByAccessKey(access_key):
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
-
-        res = cur.execute("select * from template_batch where access_key = '"+access_key+"'").fetchone()
-    
+        res = cnco2_data.CNCSystemDB.getOne("select * from template_batch where access_key = '"+access_key+"'")
+        
         if(res == None):
             return(BatchTemplate())
         else:
@@ -190,12 +155,7 @@ class SampleSets:
     def getByBatchAccessKey(self, batch_access_key):
         sample_sets = []
         
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
-        
-        res = cur.execute("select * from sample_set where batch_access_key = '"+batch_access_key+"'").fetchall()
-        
+        res = cnco2_data.CNCSystemDB.getAll("select * from sample_set where batch_access_key = '"+batch_access_key+"'")
         for ss in res:
             temp_sample_set = SampleSet()
             temp_sample_set.name = ss['name']
@@ -278,11 +238,7 @@ class System:
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
     def isRunning():
-        con = sqlite3.connect("cnco2.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
-        
-        res = cur.execute("select is_running from cnco2_system").fetchone()
+        res = res = cnco2_data.CNCSystemDB.getOne("select is_running from cnco2_system")
         if(res['is_running'] == 0):
             return False
         else:
@@ -290,19 +246,16 @@ class System:
 
     def start():
         Logging.write("Starting System")
-        con = sqlite3.connect("cnco2.db")
-        cur = con.cursor()
-        
-        res = cur.execute("update cnco2_system set is_running = 1")
-        con.commit()
+        res = cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 1")
         
     def stop():
         Logging.write("Stopping System")
-        con = sqlite3.connect("cnco2.db")
-        cur = con.cursor()
-        
-        res = cur.execute("update cnco2_system set is_running = 0")
-        con.commit()
+        res = cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0")
+
+
+    def getVersion():
+        res = cnco2_data.CNCSystemDB.getOne("select version from cnco2_system")
+        return res['version']
 
     def getIp():
         ip_address = '127.0.0.1'        
@@ -367,27 +320,20 @@ class System:
 
 class Storage:
     def write(self, batch_access_key, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
-        con = sqlite3.connect("cnco2_data.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
-
         o2_val = o2_val.replace(",", "")
         temp_val = temp_val.replace(",", "")
         pressure_val = pressure_val.replace(",", "")
 
         sql = "insert into sample_store values ('"+batch_access_key+"', "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', "+str(sample_type) + ",'"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
-        cur.execute(sql)
-        con.commit()
+        cnco2_data.CNCDataDB.execute(sql)
+
         
     def getByAccessKey(self, batch_access_key):
-        con = sqlite3.connect("cnco2_data.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
         outfile = open(batch_access_key+".csv", "w")
         outfile.write("'batch_access_key','collected','x_pos','y_pos','o2_pct','temp_c','pressure_mb','status'\n")
         
         sql = "select * from sample_store where batch_access_key = '"+batch_access_key+"' order by collected"
-        res = cur.execute(sql)
+        res = cnco2_data.CNCDataDB.getAll(sql)
         for row in res:
             outfile.write("'"+row['batch_access_key']+"','"+row['collected']+"',"+str(row['x_pos'])+","+str(row['y_pos'])+","+str(row['o2_value'])+","+str(row['temp_value'])+","+str(row['pressure_value'])+",'"+row['status']+"'\n")
 
@@ -572,7 +518,8 @@ class Logging:
     
 
 def getAbout():
+    version = System.getVersion()
     print("#######################################################")
-    print("##   CNCO2 V0.1                                      ##")
-    print("##   Griffin Lab, 2024                               ##")
+    print("     CNCO2 V"+version+"                                ")
+    print("     Griffin Lab, 2024                                 ")
     print("#######################################################")

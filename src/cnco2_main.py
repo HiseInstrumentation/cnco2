@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     match commands:
         case 'get_version':
-            print("1.0")
+            print(cnco2.System.getVersion())
         case 'discover_components':
             cnco2.System.discoverComponents()
         case 'get_ip':
@@ -19,4 +19,5 @@ if __name__ == '__main__':
             print(ip_address)
         case _:
             print("Commands")
-            print(user_commands)
+            for user_command in user_commands:
+                print(user_command)
