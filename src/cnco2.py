@@ -12,9 +12,11 @@ import time
 from time import localtime, strftime
 import serial
 import re
-
-
-
+from urllib.request import urlopen
+import re as r
+from socket import timeout
+from urllib.error import HTTPError, URLError
+import serial.tools.list_ports
 
 class BatchRuns:
     
@@ -301,29 +303,68 @@ class System:
         
         res = cur.execute("update cnco2_system set is_running = 0")
         con.commit()
-    
-    '''
-    # Find temp controllers, gantry and o2 sensor
+
+    def getIp():
+        ip_address = '127.0.0.1'        
+
+        try:
+            d = str(urlopen('http://checkip.dyndns.com/', timeout=10).read())
+            ip_address = r.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(d).group(1)
+        except  HTTPError as error:
+            print('HTTP Error: Data of %s not retrieved because %s\nURL: %s', name, error, url)
+        except URLError as error:
+            if(isinstance(error.reason, timeout)):
+                print("Error timeout")
+            else:
+                print('URL Error:  Data of %s not retrieved because %s\nURL: %s', name, error, url)
+     
+        return ip_address
+
     def discoverComponents():
+
         all_port = serial.tools.list_ports.comports()
-        Logging.write("Polling for devices")
 
         for port in all_port:
-            print("*", end="")
+            print("Checking ", end='')
+            print(port.device)
+
+        for port in all_port:
             try:
+                # First connect at 115200 for temp controllers and gantry
                 dev = serial.Serial(port.device, 115200, timeout=4)
                 dev.reset_input_buffer()
                 time.sleep(2)
                 response = dev.readline().decode('utf-8').strip()
                 if(response[0:5] == "CNCO2"):
-                    heater_name = response[6:]
-                    print("\nFound Heater at " + port.device + ": " + heater_name + "\n")
-                    
+                    device_name = response[6:]
+                    print("\nFound temp controller at " + port.device + ": " + device_name + "\n")
+                else:
+                    dev.write(b'?\n')
+                    time.sleep(2)
+                    response = dev.readline().decode('utf-8').strip()
+                    if(response[0:5] == "<Idle"):
+                        print("\nFound Gantry at " + port.device + "\n")
 
+                dev.close()
+
+                # Second connect at 19200 for o2 sensor
+                dev = serial.Serial(port.device, 19200, timeout=4)
+                dev.reset_input_buffer()
+                time.sleep(2)
+                dev.write(b'I\n')
+                time.sleep(2)
+                response = dev.readline().decode('utf-8').strip()
+                if(response[0:9] == "ID:Oxygen"):
+                    heater_name = response[6:]
+                    print("\nFound O2 at " + port.device + "\n")
+
+                dev.close()
+            except UnicodeDecodeError:
+                continue
             except serial.serialutil.SerialException:
                 print(".", end='')
-    '''
-    
+
+
 class Storage:
     def write(self, batch_access_key, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
         con = sqlite3.connect("cnco2_data.db")

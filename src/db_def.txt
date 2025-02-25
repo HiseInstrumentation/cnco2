@@ -51,10 +51,13 @@ CREATE TABLE sample_set (
 );
 	
 create table cnco2_system (
-	is_running INTEGER default 0
+	is_running INTEGER default 0,
+    prepared_to_run INTEGER default 0,
+    version TEXT,
+    ip_address TEXT
 );
 
-insert into cnco2_system values (0);
+insert into cnco2_system values (0, 0, 'Dev 1', '');
 
 
 // cnco2_data.db
