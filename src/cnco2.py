@@ -233,6 +233,7 @@ class System:
     #compTempController[]
     #compGantry
     #compO2Sensor
+    
 
     # Before any run can be executed, this must be called
     def initialize():
@@ -357,7 +358,27 @@ class Storage:
 
 class Gantry:
     gantry_serial = ""
+    offset_x = 0
+    offset_y = 0
     
+    def adjust(self, parms):
+        if(parms.axis == "x"):
+            self.offset_x = parms.offset
+            self.adjustX(parms.offset)
+        if(parms.axis == "y"):
+            self.offset_y = parms.offset
+            self.adjustY(parms.offset)
+            
+    def adjustX(offset):
+        commands = []
+        commands.append(bytes('$J=G91 G21 X'+str(x)+' F2050\n', 'utf-8'))
+        self.runCommands(commands)
+
+    def adjustY(offset):
+        commands = []
+        commands.append(bytes('$J=G91 G21 Y'+str(y)+' F2050\n', 'utf-8'))
+        self.runCommands(commands)
+
     def goHome(self):
         commands = []
         commands.append(b'G28\n')

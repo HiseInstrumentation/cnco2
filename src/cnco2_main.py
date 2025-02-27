@@ -3,28 +3,53 @@
 import cnco2
 import sys
 import sqlite3
+import time
 
-user_commands = ['get_version', 'discover_components', 'get_ip', 'initialize']
+CNCO2Sys = cnco2.System
 
 if __name__ == '__main__':
     cnco2.getAbout()
 
-    try:
-        commands = sys.argv[1]
-    except IndexError:
-        commands = 'help'
+    # SYSTEM START
+    
+    # Initialize DB and environment variables (IP) 
+    CNCO2Sys.initialize()
+    
+    # Find attached components
+    CNCO2Sys.discoverComponents()
+    
+    while True:
+        command = CNCO2Sys.getCommand()
+        
+        if command.type == "ADJUST_GANTRY":
+            # Gantry, move x/y, record offset
+            CNCO2Sys.Components.Gantry.adjust(command.parms)
+            
+        # RUN COMMAND
+        if command.type == "EXECUTE_RUN":
+            parms = command.parms
+            
+            batch_key = parms.batch_key
+            run_count = parms.run_count
+            
+            for current_run in run_count:            
+                # For each component (object wrapper)
+                
+                    # Send component params 
+                    
+                # Are all compononents ready?
+                    # For each component (object wrapper)
 
-    match commands:
-        case 'get_version':
-            print(cnco2.System.getVersion())
-        case 'discover_components':
-            cnco2.System.discoverComponents()
-        case 'get_ip':
-            ip_address = cnco2.System.getIp()
-            print(ip_address)
-        case 'initialize':
-            cnco2.System.initialize()
-        case _:
-            print("Commands")
-            for user_command in user_commands:
-                print(user_command)
+                        # Check for ready state
+                    
+                # All cmponents are ready
+                
+                # Start run
+                    # Check exception (pause, resume, stop)
+                    # Read O2
+                    # Move
+                    
+            # end run x times
+        # END RUN COMMAND
+        
+        time.sleep(1)
