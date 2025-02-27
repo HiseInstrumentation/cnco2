@@ -223,27 +223,45 @@ class SampleUnit:
     SAMPLE_TYPE_REG = 0
     SAMPLE_TYPE_CTL = 1
     SAMPLE_TYPE_BLNK = 2
-'''
+
 class SystemComponent:
     componentType = ""
     componentId = ""
     comPort = ""
-'''
-class System:
-    #compTempController[]
-    #compGantry
-    #compO2Sensor
-    
 
+class SystemCommand:
+    created = ""
+    commandText = ""
+    status = ""
+    executed = ""
+    systemResponse = ""
+
+class System:
+    components = []     
+    ipAddress = "127.0.0.1"
+    version = ""
+    
+    def getNextCommand(self):
+        # Get the next command that has not been executed
+        res = cnco2_data.CNCSystemDB.getOne("select * from sys_command where executed = '' order by created limit 1")
+        cm = SystemCommand()
+        cm.created = res['created']
+        cm.commandText = res['command_text']
+        cm.status = res['status']
+        cm.executed = res['executed']
+        cm.systemResponse = res['system_response']
+        
+        return cm
+    
     # Before any run can be executed, this must be called
-    def initialize():
-        ip_address = System.getIp()
+    def initialize(self):
+        ip_address = self.getIp()
         cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0, prepared_to_run = 0, ip_address = '"+ip_address+"'")
 
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
     def isRunning():
-        res = res = cnco2_data.CNCSystemDB.getOne("select is_running from cnco2_system")
+        res = cnco2_data.CNCSystemDB.getOne("select is_running from cnco2_system")
         if(res['is_running'] == 0):
             return False
         else:
@@ -264,11 +282,12 @@ class System:
         res = cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0")
 
 
-    def getVersion():
+    def getVersion(self):
         res = cnco2_data.CNCSystemDB.getOne("select version from cnco2_system")
+        self.version = res['version']
         return res['version']
 
-    def getIp():
+    def getIp(self):
         ip_address = '127.0.0.1'        
 
         try:
@@ -283,9 +302,11 @@ class System:
             else:
                 print('URL Error:  Data not retrieved because %s\nURL: %s', error, url)
      
+        self.ipAddress = ip_address
+     
         return ip_address
 
-    def discoverComponents():
+    def discoverComponents(self):
 
         all_port = serial.tools.list_ports.comports()
 
@@ -303,12 +324,22 @@ class System:
                 if(response[0:5] == "CNCO2"):
                     device_name = response[6:]
                     print("\nFound temp controller at " + port.device + ": " + device_name + "\n")
+                    comp = SystemComponent()
+                    comp.comPort = port.device
+                    comp.componentType = "TEMP_CONTROLLER"
+                    comp.componentId = device_name
+                    self.components.append(comp)
                 else:
                     dev.write(b'?\n')
                     time.sleep(2)
                     response = dev.readline().decode('utf-8').strip()
                     if(response[0:5] == "<Idle"):
                         print("\nFound Gantry at " + port.device + "\n")
+                        comp = SystemComponent()
+                        comp.comPort = port.device
+                        comp.componentType = "GANTRY"
+                        comp.componentId = "Openbuilds CNC Gantry"
+                        self.components.append(comp)
             except UnicodeDecodeError:
                 continue
             except serial.serialutil.SerialException:
@@ -327,6 +358,11 @@ class System:
                 if(response[0:9] == "ID:Oxygen"):
                     heater_name = response[6:]
                     print("\nFound O2 at " + port.device + "\n")
+                    comp = SystemComponent()
+                    comp.comPort = port.device
+                    comp.componentType = "O2_SENSOR"
+                    comp.componentId = "Sendot O2 Sensor"
+                    self.components.append(comp)
 
                 dev.close()
             except UnicodeDecodeError:

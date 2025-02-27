@@ -60,6 +60,14 @@ create table cnco2_system (
 
 insert into cnco2_system values (0, 0, 'Dev 1', '');
 
+create table sys_command (
+	created TEXT,				// When the command was created
+	command_text TEXT,			// Command + parameters
+	status REAL,				// Status after the command was executed
+	executed TEXT,				// When the command was executed
+	system_response TEXT		// Any reponse from the execution of command
+);
+
 
 // cnco2_data.db
 

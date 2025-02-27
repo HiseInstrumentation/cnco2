@@ -5,25 +5,34 @@ import sys
 import sqlite3
 import time
 
-CNCO2Sys = cnco2.System
+CNCO2Sys = cnco2.System()
 
 if __name__ == '__main__':
     cnco2.getAbout()
-
-    # SYSTEM START
     
     # Initialize DB and environment variables (IP) 
     CNCO2Sys.initialize()
-    
-    # Find attached components
-    CNCO2Sys.discoverComponents()
-    
+
     while True:
-        command = CNCO2Sys.getCommand()
+        command = CNCO2Sys.getNextCommand()
         
-        if command.type == "ADJUST_GANTRY":
-            # Gantry, move x/y, record offset
-            CNCO2Sys.Components.Gantry.adjust(command.parms)
+        if command.type == "COMP_DISCOVERY:
+            # Find attached components (Must give a green light for 
+            # running and adjusting gantry
+            CNCO2Sys.discoverComponents()        
+        
+        if command.type == "COMP_COMMAND":
+            if command.parms.commandType == 'ADJUST_GANTRY':
+                # Gantry, move x/y, record offset
+                CNCO2Sys.Components.Gantry.adjust(command.parms)
+            
+            if command.parms.commandType == 'TEMP_SET':
+                # Set the temperature of the temp controllers
+                CNCO2Sys.Components.TempControl.setTemp(command.parms)
+                
+            if comand.parms.commandType == 'O2_RESET':
+                # Reset the O2 sensor
+                CNCO2Sys.Components.O2Sensor.reset()
             
         # RUN COMMAND
         if command.type == "EXECUTE_RUN":
@@ -38,10 +47,9 @@ if __name__ == '__main__':
                 sample_set.initializePlan()
             
             for current_run in run_count:            
-                # For each component (object wrapper)
-                CNCO2Sys.components.runParms = comp_parms
                 
-                while CNCO2Sys.componentsReady == FALSE:
+                # We are waiting for the temp controllers to give the OK on reaching target temperatures
+                while CNCO2Sys.componentsReady() == FALSE:
                     Logging.write("Components Initializing")
                     time.sleep(5)
 
