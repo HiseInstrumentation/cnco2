@@ -31,18 +31,18 @@ if __name__ == '__main__':
             
             batch_key = parms.batch_key
             run_count = parms.run_count
+            comp_parms = parms.component.parms
             
             for current_run in run_count:            
                 # For each component (object wrapper)
+                CNCO2Sys.components.runParms = comp_parms
                 
-                    # Send component params 
-                    
-                # Are all compononents ready?
-                    # For each component (object wrapper)
+                while CNCO2Sys.componentsReady == FALSE:
+                    Logging.write("Components Initializing")
+                    time.sleep(5)
 
-                        # Check for ready state
-                    
                 # All cmponents are ready
+                Logging.write("Components Initialized")
                 
                 # Start run
                     # Check exception (pause, resume, stop)
