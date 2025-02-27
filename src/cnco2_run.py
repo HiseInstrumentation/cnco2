@@ -53,8 +53,6 @@ if __name__ == '__main__':
 
 	# Wait for system ready from heaters
 
-
-
 	# For each sample set
 	for ss in batch.sampleSets:
 		for su in ss.execPlan:

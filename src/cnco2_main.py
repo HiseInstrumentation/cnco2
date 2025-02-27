@@ -33,6 +33,10 @@ if __name__ == '__main__':
             run_count = parms.run_count
             comp_parms = parms.component.parms
             
+            batch = cnco2.BatchRuns().getByAccessKey(batch_key)
+            for sample_set in batch.sampleSets:
+                sample_set.initializePlan()
+            
             for current_run in run_count:            
                 # For each component (object wrapper)
                 CNCO2Sys.components.runParms = comp_parms
@@ -42,14 +46,18 @@ if __name__ == '__main__':
                     time.sleep(5)
 
                 # All cmponents are ready
-                Logging.write("Components Initialized")
+                cnco2.Logging.write("Components Initialized")
                 
-                # Start run
-                    # Check exception (pause, resume, stop)
-                    # Read O2
-                    # Move
-                    
-            # end run x times
-        # END RUN COMMAND
-        
+                for ss in batch.sampleSets:
+                    for su in ss.execPlan:
+                        if cnco2.System.isRunning():
+                            cnco2.Logging.write("\tSampling: " + str(su.x) + "," + str(su.y))
+                            gantry.moveTo(su.x, su.y)
+                            reading = o2.getReading()
+                            cnco2.Logging.write("\t"+reading.status)
+                            cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
+
+            gantry.findHome()
+            cnco2.Logging.write("Job Complete", True)
+
         time.sleep(1)

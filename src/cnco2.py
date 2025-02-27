@@ -336,12 +336,12 @@ class System:
 
 
 class Storage:
-    def write(self, batch_access_key, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
+    def write(self, batch_access_key, run_no, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
         o2_val = o2_val.replace(",", "")
         temp_val = temp_val.replace(",", "")
         pressure_val = pressure_val.replace(",", "")
 
-        sql = "insert into sample_store values ('"+batch_access_key+"', "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', "+str(sample_type) + ",'"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
+        sql = "insert into sample_store values ('"+batch_access_key+"', "+str(run_no)+", "+str(x_pos)+", "+str(y_pos)+", "+str(o2_val)+", "+str(temp_val)+", "+str(pressure_val)+", '"+status+"', "+str(sample_type) + ",'"+strftime("%Y-%m-%d %H:%M:%S", localtime())+"')"
         cnco2_data.CNCDataDB.execute(sql)
 
         
@@ -352,7 +352,7 @@ class Storage:
         sql = "select * from sample_store where batch_access_key = '"+batch_access_key+"' order by collected"
         res = cnco2_data.CNCDataDB.getAll(sql)
         for row in res:
-            outfile.write("'"+row['batch_access_key']+"','"+row['collected']+"',"+str(row['x_pos'])+","+str(row['y_pos'])+","+str(row['o2_value'])+","+str(row['temp_value'])+","+str(row['pressure_value'])+",'"+row['status']+"'\n")
+            outfile.write("'"+row['batch_access_key']+"', "+str(run_no)+", '"+row['collected']+"',"+str(row['x_pos'])+","+str(row['y_pos'])+","+str(row['o2_value'])+","+str(row['temp_value'])+","+str(row['pressure_value'])+",'"+row['status']+"'\n")
 
         outfile.close()
 

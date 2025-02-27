@@ -12,6 +12,7 @@ CREATE TABLE batch (
 	access_key TEXT,
 	name TEXT,
 	description TEXT, 
+	run_count REAL,
 	created TEXT);
 
 create table template_sample_set (
@@ -64,6 +65,7 @@ insert into cnco2_system values (0, 0, 'Dev 1', '');
 
 create table sample_store (
 	batch_access_key TEXT,
+	run_no REAL,
 	x_pos REAL,
 	y_pos REAL,
 	o2_value REAL,
@@ -77,6 +79,7 @@ create table sample_store (
 create table sample_store_archive (
 	archived TEXT,
 	batch_access_key TEXT,
+	run_no REAL,
 	x_pos REAL,
 	y_pos REAL,
 	o2_value REAL,
