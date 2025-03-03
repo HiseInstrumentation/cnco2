@@ -335,10 +335,10 @@ class System:
     def discoverComponents(self):
 
         all_port = serial.tools.list_ports.comports()
-
+        Logging.write("Polling Serial Devices")
+        
         for port in all_port:
-            print("Checking ", end='')
-            print(port.device)
+            Logging.write(port.device)
 
         for port in all_port:
             connected = False
@@ -351,25 +351,21 @@ class System:
                 if(response[0:5] == "CNCO2"):
                     connected = True
                     device_name = response[6:]
-                    print("\nFound temp controller at " + port.device + ": " + device_name + "\n")
+                    Logging.write("Found temp controller at " + port.device + ": " + device_name)
                     
                     tc = TempController()
                     tc.device_id = device_name
                     tc.serial = dev
                     
-                    self.C_TempControllers.controllers.append(tc)
-                    self.heater1 = tc
+                    self.C_TempControllers.addController(tc)
                 else:
                     connected = True
                     dev.write(b'?\n')
                     time.sleep(2)
                     response = dev.readline().decode('utf-8').strip()
                     if(response[0:5] == "<Idle"):
-                        print("\nFound Gantry at " + port.device + "\n")
+                        Logging.write("Found Gantry at " + port.device)
                         comp = SystemComponent()
-                        comp.comPort = port.device
-                        comp.componentType = "GANTRY"
-                        comp.componentId = "Openbuilds CNC Gantry"
                         gant = Gantry()
                         gant.serial = dev
                         self.C_Gantry = gant
@@ -390,11 +386,8 @@ class System:
                     response = dev.readline().decode('utf-8').strip()
                     if(response[0:9] == "ID:Oxygen"):
                         heater_name = response[6:]
-                        print("\nFound O2 at " + port.device + "\n")
+                        Logging.write("Found O2 at " + port.device)
                         comp = SystemComponent()
-                        comp.comPort = port.device
-                        comp.componentType = "O2_SENSOR"
-                        comp.componentId = "Sendot O2 Sensor"
                         o2sensor = O2Sensor()
                         o2sensor.serial = dev
                         self.C_O2Sensor = o2sensor
@@ -629,7 +622,6 @@ class TempController:
         self.serial.write(bytes("stop", 'utf-8'))
         
     def getTemp(self):
-        # self.serial = serial.Serial(self.serial.port, 115200, timeout=3)
         self.serial.write(b'stat')
         time.sleep(1)
         return_str = self.serial.readline().decode('utf-8').strip()
