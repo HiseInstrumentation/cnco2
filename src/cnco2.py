@@ -19,6 +19,8 @@ from urllib.error import HTTPError, URLError
 import serial.tools.list_ports
 import cnco2_data
 
+my_heater = None
+
 class BatchRuns:
     
     def hasRun(self, batch_access_key):
@@ -235,12 +237,22 @@ class SystemCommand:
     status = ""
     executed = ""
     systemResponse = ""
+    parameters = ""
 
 class System:
     components = []     
     ipAddress = "127.0.0.1"
     version = ""
+    heater1 = None
     
+    C_O2Sensor = None
+    C_Gantry = None
+    C_TempControllers = None
+    
+    def __init__(self):
+        self.C_TempControllers = TempControllers()
+        
+
     def getNextCommand(self):
         # Get the next command that has not been executed
         res = cnco2_data.CNCSystemDB.getOne("select * from sys_command where executed = '' order by created limit 1")
@@ -250,6 +262,18 @@ class System:
         cm.status = res['status']
         cm.executed = res['executed']
         cm.systemResponse = res['system_response']
+        cm.parameters = res['parameters']
+
+        if cm.parameters != None:
+            l_parms = {}
+            parms = cm.parameters.split('&')
+            for parm in parms:
+                parm_parts = parm.split('=')
+                p_key = parm_parts[0];
+                p_value = parm_parts[1];
+                l_parms[p_key] = p_value
+                
+            cm.parms = l_parms
         
         return cm
     
@@ -306,6 +330,8 @@ class System:
      
         return ip_address
 
+
+
     def discoverComponents(self):
 
         all_port = serial.tools.list_ports.comports()
@@ -315,6 +341,7 @@ class System:
             print(port.device)
 
         for port in all_port:
+            connected = False
             try:
                 # First connect at 115200 for temp controllers and gantry
                 dev = serial.Serial(port.device, 115200, timeout=4)
@@ -322,14 +349,18 @@ class System:
                 time.sleep(2)
                 response = dev.readline().decode('utf-8').strip()
                 if(response[0:5] == "CNCO2"):
+                    connected = True
                     device_name = response[6:]
                     print("\nFound temp controller at " + port.device + ": " + device_name + "\n")
-                    comp = SystemComponent()
-                    comp.comPort = port.device
-                    comp.componentType = "TEMP_CONTROLLER"
-                    comp.componentId = device_name
-                    self.components.append(comp)
+                    
+                    tc = TempController()
+                    tc.device_id = device_name
+                    tc.serial = dev
+                    
+                    self.C_TempControllers.controllers.append(tc)
+                    self.heater1 = tc
                 else:
+                    connected = True
                     dev.write(b'?\n')
                     time.sleep(2)
                     response = dev.readline().decode('utf-8').strip()
@@ -339,37 +370,39 @@ class System:
                         comp.comPort = port.device
                         comp.componentType = "GANTRY"
                         comp.componentId = "Openbuilds CNC Gantry"
-                        self.components.append(comp)
+                        gant = Gantry()
+                        gant.serial = dev
+                        self.C_Gantry = gant
+                        
             except UnicodeDecodeError:
                 continue
             except serial.serialutil.SerialException:
                 print(".", end='')
-
-                dev.close()
                 
-            try:
-                # Second connect at 19200 for o2 sensor
-                dev = serial.Serial(port.device, 19200, timeout=4)
-                dev.reset_input_buffer()
-                time.sleep(2)
-                dev.write(b'I\n')
-                time.sleep(2)
-                response = dev.readline().decode('utf-8').strip()
-                if(response[0:9] == "ID:Oxygen"):
-                    heater_name = response[6:]
-                    print("\nFound O2 at " + port.device + "\n")
-                    comp = SystemComponent()
-                    comp.comPort = port.device
-                    comp.componentType = "O2_SENSOR"
-                    comp.componentId = "Sendot O2 Sensor"
-                    self.components.append(comp)
+            if connected == False:
+                try:
+                    # Second connect at 19200 for o2 sensor
+                    dev = serial.Serial(port.device, 19200, timeout=4)
+                    dev.reset_input_buffer()
+                    time.sleep(2)
+                    dev.write(b'I\n')
+                    time.sleep(2)
+                    response = dev.readline().decode('utf-8').strip()
+                    if(response[0:9] == "ID:Oxygen"):
+                        heater_name = response[6:]
+                        print("\nFound O2 at " + port.device + "\n")
+                        comp = SystemComponent()
+                        comp.comPort = port.device
+                        comp.componentType = "O2_SENSOR"
+                        comp.componentId = "Sendot O2 Sensor"
+                        o2sensor = O2Sensor()
+                        o2sensor.serial = dev
+                        self.C_O2Sensor = o2sensor
 
-                dev.close()
-            except UnicodeDecodeError:
-                continue
-            except serial.serialutil.SerialException:
-                print(".", end='')
-
+                except UnicodeDecodeError:
+                    continue
+                except serial.serialutil.SerialException:
+                    print(".", end='')
 
 class Storage:
     def write(self, batch_access_key, run_no, x_pos, y_pos, sample_type, o2_val, temp_val, pressure_val, status):
@@ -393,7 +426,7 @@ class Storage:
         outfile.close()
 
 class Gantry:
-    gantry_serial = ""
+    serial = None
     offset_x = 0
     offset_y = 0
     
@@ -504,13 +537,8 @@ class Gantry:
         
     def moveTo(self, x, y):
         commands = []
-#        commands.append(bytes('G00 X'+str(x)+' Y'+str(y)+'\n', 'utf-8'))
         commands.append(bytes('$J=G90 G21 X'+str(x)+' Y'+str(y)+' F2050\n', 'utf-8'))
         self.runCommands(commands)
-        
-    def initialize(self, serial_port, baud_rate):
-        self.connect(serial_port, baud_rate)
-        self.findHome()
         
     def close(self):
         self.gantry_serial.close()		
@@ -529,10 +557,8 @@ class O2SensorReading:
         
         
 class O2Sensor:
-    sensor_serial = ""
+    serial = None
     
-    def initialize(self, serial_port, baud_rate):
-        self.connect(serial_port, baud_rate)
         
     def connect(self, serial_port, baud_rate):
         Logging.write("Connecting to O2 Sensor on "+serial_port+" Baud Rate:"+str(baud_rate), True)
@@ -574,17 +600,46 @@ class O2Sensor:
 
         return return_value
 
-class TempController:
-    controller_serial = ""
-    name = ""
+class TempControllers:
+    controllers = []
+    
+    def addController(self, controller):
+        self.controllers.append(controller)
+    
+    def getDeviceById(self, device_id):
+        for cont in self.controllers:
+            if cont.device_id == device_id:
+                return cont
+    
+    def setTemp(self, device_id, target_temp):
+        cont = self.getDeviceById(device_id)
+        cont.setTemp(target_temp)
+                
+    def stopDevice(self, device_id):
+        cont = self.getDeviceById(device_id)
+        cont.stop()
 
-    def initialize(self, serial_port, baud_rate):
-        self.connect(serial_port, baud_rate)
+class TempController:
+    serial = None
+        
+    def setTemp(self, target_temp):
+        self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
+        
+    def stop(self):
+        self.serial.write(bytes("stop", 'utf-8'))
+        
+    def getTemp(self):
+        # self.serial = serial.Serial(self.serial.port, 115200, timeout=3)
+        self.serial.write(b'stat')
+        time.sleep(1)
+        return_str = self.serial.readline().decode('utf-8').strip()
+        return return_str
+
         
     def connect(self, serial_port, baud_rate):
         Logging.write("Connecting to Temp Controller on "+serial_port+" Baud Rate:"+str(baud_rate), True)
         try:
-            self.sensor_serial = serial.Serial(serial_port, baud_rate)
+            self.serial = serial.Serial(serial_port, baud_rate)
             return True
         except serial.serialutil.SerialException:
             Logging.write("Could not connect to temp controller")
