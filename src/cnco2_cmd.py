@@ -7,16 +7,27 @@ if __name__ == '__main__':
 
     CNCO2Sys = cnco2.System()
 
-    # command = CNCO2Sys.getNextCommand()
-
     CNCO2Sys.discoverComponents()
+      
+    # Gantry
+    gantry = CNCO2Sys.C_Gantry
+    gantry.findHome()
     
-    for i in range(10):    
-        CNCO2Sys.C_O2Sensor.getReading()
-        print(CNCO2Sys.C_O2Sensor.currentO2)
-        time.sleep(1)
-        
+    for x in range(5):
+        for y in range(5):
+            r_x = x * 10
+            r_y = y * 10
+            gantry.moveTo(r_x,r_y)
+            CNCO2Sys.C_O2Sensor.getReading()
+            print(CNCO2Sys.C_O2Sensor.currentO2)
+
+    
+    ''' 
+
     '''
+        
+    ''' 
+    # Temp Controller
     cont = CNCO2Sys.C_TempControllers.getDeviceById("HEATER 1")
     
     print("Found Heater 1")

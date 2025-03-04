@@ -85,6 +85,18 @@ create table o2_sensor
     current_pressure TEXT
 );
 
+insert into o2_sensor values ('O2 Sensor', 0, 0, 0);
+
+create table gantry 
+(
+    device_id TEXT UNIQUE,
+    current_x TEXT,
+    current_y TEXT,
+    was_homed INTEGER
+);
+
+insert into gantry values ('GANTRY',0,0,0);
+
 
 // cnco2_data.db
 

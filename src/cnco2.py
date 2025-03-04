@@ -251,6 +251,7 @@ class System:
     
     def __init__(self):
         self.C_TempControllers = TempControllers()
+        self.initialize()
         
 
     def getNextCommand(self):
@@ -281,6 +282,8 @@ class System:
     def initialize(self):
         ip_address = self.getIp()
         cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0, prepared_to_run = 0, ip_address = '"+ip_address+"'")
+        cnco2_data.CNCSystemDB.execute("update gantry set was_homed = 0 where device_id = 'GANTRY'")
+
 
     # This should be called during the execution of a batch so
     # that we know that we should stop executing.
@@ -315,16 +318,16 @@ class System:
         ip_address = '127.0.0.1'        
 
         try:
-            
-            d = str(urlopen('http://checkip.dyndns.com/', timeout=10).read())
+            url = 'http://checkip.dyndns.com/';
+            d = str(urlopen(url, timeout=10).read())
             ip_address = r.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(d).group(1)
         except  HTTPError as error:
-            print('HTTP Error: Data not retrieved because %s\nURL: %s', error, url)
+            Logging.write('HTTP Error: Data not retrieved because %s\nURL: %s', error, url)
         except URLError as error:
             if(isinstance(error.reason, timeout)):
-                print("Error timeout")
+                Logging.write("Error timeout")
             else:
-                print('URL Error:  Data not retrieved because %s\nURL: %s', error, url)
+                Logging.write('URL Error:  Data not retrieved because %s\nURL: %s', error, url)
      
         self.ipAddress = ip_address
      
@@ -445,17 +448,27 @@ class Gantry:
         commands = []
         commands.append(b'G28\n')
         self.runCommands(commands)
+
+    def waitForReady(self):
+        command_complete = False
+        response = self.serial.readline().decode('utf-8').strip()
+        print("waiting for ok")
+        if "ok" in response:
+            print("Found ok")
+            command_complete = True
+        time.sleep(.5)
     
     def findHome(self):
         Logging.write("Finding Home", True)
         commands = []
         commands.append(b'$H\n')
         self.runCommands(commands)
-        time.sleep(10)
-
+        self.waitForReady()
+        sql = "update gantry set current_x = '0', current_y= '0', was_homed = 1 where device_id = 'GANTRY'"
+        res = cnco2_data.CNCSystemDB.execute(sql)
     
     def connect(self, serial_port, baud_rate):
-        self.gantry_serial = serial.Serial(serial_port, baud_rate)
+        # self.serial = serial.Serial(serial_port, baud_rate)
         Logging.write("Connecting to gantry on "+serial_port+" Baud Rate:"+str(baud_rate), True)
         commands = []
         commands.append(b'$0=10.0\n')
@@ -518,20 +531,22 @@ class Gantry:
         
     def runCommands(self, commands):
         for c in commands:
-            self.gantry_serial.write(c)
+            self.serial.write(c)
             Logging.write(c.decode('utf-8'))
             time.sleep(.5)
             try:
-                Logging.write(self.gantry_serial.read_all().decode('utf-8'))
+                Logging.write(self.serial.read_all().decode('utf-8'))
             except UnicodeDecodeError:
                 Logging.write("Failed to read")
-				
-            time.sleep(1)
         
     def moveTo(self, x, y):
         commands = []
         commands.append(bytes('$J=G90 G21 X'+str(x)+' Y'+str(y)+' F2050\n', 'utf-8'))
         self.runCommands(commands)
+        Logging.write("Moving to X:"+str(x)+" Y:"+str(y))
+        self.waitForReady()
+        sql = "update gantry set current_x = '"+str(x)+"', current_y= '"+str(y)+"' where device_id = 'GANTRY'"
+        res = cnco2_data.CNCSystemDB.execute(sql)
         
     def close(self):
         self.gantry_serial.close()		
@@ -572,7 +587,7 @@ class O2Sensor:
         
         while(value_rec == False):
             self.serial.write(b'M\n')
-            time.sleep(1.5)
+            time.sleep(1)
             return_str = self.serial.read_all().decode('utf-8')
             Logging.write(return_str)
             
@@ -594,7 +609,7 @@ class O2Sensor:
                 return_value.status = "O2 Read Successful"
                 value_rec = True
                 
-                sql = "insert into o2_sensor values ('O2 Sensor', '"+self.currentO2+"', '"+self.currentTemp+"', '"+self.currentPressure+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', current_o2 = '"+self.currentO2+"', current_pressure = '"+self.currentPressure+"'"
+                sql = "update o2_sensor set current_temp = '"+self.currentTemp+"', current_o2 = '"+self.currentO2+"', current_pressure = '"+self.currentPressure+"' where device_id = 'O2 Sensor'"
                 res = cnco2_data.CNCSystemDB.execute(sql)
 
         return return_value
