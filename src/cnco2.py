@@ -368,7 +368,6 @@ class System:
                     if(response[0:5] == "<Idle"):
                         connected = True
                         Logging.write("Found Gantry at " + port.device)
-                        comp = SystemComponent()
                         gant = Gantry()
                         gant.serial = dev
                         self.C_Gantry = gant
@@ -388,9 +387,7 @@ class System:
                     time.sleep(2)
                     response = dev.readline().decode('utf-8').strip()
                     if(response[0:9] == "ID:Oxygen"):
-                        heater_name = response[6:]
                         Logging.write("Found O2 at " + port.device)
-                        comp = SystemComponent()
                         o2sensor = O2Sensor()
                         o2sensor.serial = dev
                         self.C_O2Sensor = o2sensor
@@ -452,9 +449,7 @@ class Gantry:
     def waitForReady(self):
         command_complete = False
         response = self.serial.readline().decode('utf-8').strip()
-        print("waiting for ok")
         if "ok" in response:
-            print("Found ok")
             command_complete = True
         time.sleep(.5)
     
@@ -622,8 +617,13 @@ class TempControllers:
     
     def getDeviceById(self, device_id):
         for cont in self.controllers:
+            print("Device ID: ", end='')
+            print(cont.device_id)
             if cont.device_id == device_id:
                 return cont
+    
+    def getAllDevices(self):
+        return self.controllers
     
     def setTemp(self, device_id, target_temp):
         cont = self.getDeviceById(device_id)
@@ -642,15 +642,28 @@ class TempController:
     
     def setTemp(self, target_temp):
         self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
+        self.waitForReady()
+        Logging.write(self.device_id + ": Setting target temp to " + str(target_temp))
         
     def stop(self):
         self.serial.write(bytes("stop", 'utf-8'))
         
+    def waitForReady(self):
+        response = False
+        
+        while not response:
+            return_str = self.serial.readline().decode('utf-8').strip()
+            if "ready" in return_str:
+                response = True
+
+            time.sleep(1)
+        
+        return return_str
+        
     def getStat(self):
         self.serial.write(b'stat')
-        time.sleep(1)
-        return_str = self.serial.readline().decode('utf-8').strip()
-        t_parts = return_str.split("\t")
+        t_stat = self.serial.readline().decode('utf-8').strip()
+        t_parts = t_stat.split("\t")
         self.targetTemp = t_parts[0]
         self.currentTemp = t_parts[1]
         self.peltierPowerLevel = t_parts[2]
@@ -659,7 +672,7 @@ class TempController:
         sql = "insert into temp_controller values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
         res = cnco2_data.CNCSystemDB.execute(sql)
 
-        return return_str
+        return t_stat
 
         
     def connect(self, serial_port, baud_rate):
@@ -677,7 +690,7 @@ class Logging:
     def write(message, echo = False ):
         pre_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
         log_file = open('cnco2_log.txt', 'a')
-        log_file.write(pre_time+": " + message + "\n")
+        log_file.write(pre_time+": " + str(message) + "\n")
         if(echo == True):
             print(message)
         log_file.close()
