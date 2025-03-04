@@ -7,12 +7,15 @@ if __name__ == '__main__':
 
     CNCO2Sys = cnco2.System()
 
-    command = CNCO2Sys.getNextCommand()
+    # command = CNCO2Sys.getNextCommand()
 
     CNCO2Sys.discoverComponents()
     
-    o2_sensor = CNCO2Sys.C_O2Sensor.getReading()
-    
+    for i in range(10):    
+        CNCO2Sys.C_O2Sensor.getReading()
+        print(CNCO2Sys.C_O2Sensor.currentO2)
+        time.sleep(1)
+        
     '''
     cont = CNCO2Sys.C_TempControllers.getDeviceById("HEATER 1")
     
