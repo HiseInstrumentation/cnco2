@@ -68,6 +68,23 @@ create table sys_command (
 	system_response TEXT		// Any reponse from the execution of command
 );
 
+create table temp_controller
+(
+    device_id TEXT UNIQUE,
+    target_temp TEXT,
+    current_temp TEXT,
+    peltier_power_level TEXT,
+    current_status TEXT
+);
+
+create table o2_sensor
+(
+    device_id TEXT UNIQUE,
+    current_o2 TEXT,
+    current_temp TEXT,
+    current_pressure TEXT
+);
+
 
 // cnco2_data.db
 

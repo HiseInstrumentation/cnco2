@@ -359,11 +359,11 @@ class System:
                     
                     self.C_TempControllers.addController(tc)
                 else:
-                    connected = True
                     dev.write(b'?\n')
                     time.sleep(2)
                     response = dev.readline().decode('utf-8').strip()
                     if(response[0:5] == "<Idle"):
+                        connected = True
                         Logging.write("Found Gantry at " + port.device)
                         comp = SystemComponent()
                         gant = Gantry()
@@ -551,6 +551,9 @@ class O2SensorReading:
         
 class O2Sensor:
     serial = None
+    currentTemp = 0
+    currentO2 = 0
+    currentPressure = 0
     
         
     def connect(self, serial_port, baud_rate):
@@ -568,9 +571,9 @@ class O2Sensor:
         value_rec = False
         
         while(value_rec == False):
-            self.sensor_serial.write(b'M\n')
+            self.serial.write(b'M\n')
             time.sleep(1.5)
-            return_str = self.sensor_serial.read_all().decode('utf-8')
+            return_str = self.serial.read_all().decode('utf-8')
             Logging.write(return_str)
             
             if(return_str[:10] == "Low signal"):
@@ -585,11 +588,14 @@ class O2Sensor:
                 regex_te = ",[0-9]*.[0-9]*"
                 regex_pr = "[0-9]{4}|[0-9]{3}"
             
-                return_value.o2 = re.search(regex_o2, return_str).group()
-                return_value.temp = re.search(regex_te, return_str).group()
-                return_value.pressure = re.search(regex_pr, return_str).group()
+                return_value.o2 = self.currentO2 = re.search(regex_o2, return_str).group()
+                return_value.temp = self.currentTemp = re.search(regex_te, return_str).group().replace(',', '')
+                return_value.pressure = self.currentPressure = re.search(regex_pr, return_str).group()
                 return_value.status = "O2 Read Successful"
                 value_rec = True
+                
+                sql = "insert into o2_sensor values ('O2 Sensor', '"+self.currentO2+"', '"+self.currentTemp+"', '"+self.currentPressure+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', current_o2 = '"+self.currentO2+"', current_pressure = '"+self.currentPressure+"'"
+                res = cnco2_data.CNCSystemDB.execute(sql)
 
         return return_value
 
@@ -614,17 +620,30 @@ class TempControllers:
 
 class TempController:
     serial = None
-        
+    currentTemp = 0
+    targetTemp = 0
+    peltierPowerLevel = 0
+    currentStatus = "O"
+    
     def setTemp(self, target_temp):
         self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
         
     def stop(self):
         self.serial.write(bytes("stop", 'utf-8'))
         
-    def getTemp(self):
+    def getStat(self):
         self.serial.write(b'stat')
         time.sleep(1)
         return_str = self.serial.readline().decode('utf-8').strip()
+        t_parts = return_str.split("\t")
+        self.targetTemp = t_parts[0]
+        self.currentTemp = t_parts[1]
+        self.peltierPowerLevel = t_parts[2]
+        self.currentStatus = t_parts[3]
+        
+        sql = "insert into temp_controller values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
+        res = cnco2_data.CNCSystemDB.execute(sql)
+
         return return_str
 
         
