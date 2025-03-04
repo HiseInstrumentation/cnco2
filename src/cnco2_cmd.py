@@ -9,7 +9,7 @@ if __name__ == '__main__':
     CNCO2Sys.discoverComponents()
     
     cont = CNCO2Sys.C_TempControllers.getDeviceById("HEATER 4")
-    cont.setTemp(33)
+    cont.setTemp(34)
     cont.getStat()
     
     while not temp_ready:
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         uf = "Target: %s\tCurrent: %s\tPower: %s\tStatus: %s" % (cont.targetTemp, cont.currentTemp, cont.peltierPowerLevel, cont.currentStatus)
         print(uf)
         
-        if(float(cont.currentTemp) > (float(cont.targetTemp) - 1)):
+        if cont.isReady:
             temp_ready = True
             print("TEMP IS READY!")
 
@@ -30,8 +30,8 @@ if __name__ == '__main__':
     gantry = CNCO2Sys.C_Gantry
     gantry.findHome()
     
-    for x in range(3):
-        for y in range(3):
+    for x in range(5):
+        for y in range(5):
             r_x = x * 10
             r_y = y * 10
             gantry.moveTo(r_x,r_y)

@@ -448,10 +448,12 @@ class Gantry:
 
     def waitForReady(self):
         command_complete = False
-        response = self.serial.readline().decode('utf-8').strip()
-        if "ok" in response:
-            command_complete = True
-        time.sleep(.5)
+        while not command_complete:
+            response = self.serial.readline().decode('utf-8').strip()
+            if "ok" in response:
+                command_complete = True
+                
+            time.sleep(.5)
     
     def findHome(self):
         Logging.write("Finding Home", True)
@@ -529,10 +531,6 @@ class Gantry:
             self.serial.write(c)
             Logging.write(c.decode('utf-8'))
             time.sleep(.5)
-            try:
-                Logging.write(self.serial.read_all().decode('utf-8'))
-            except UnicodeDecodeError:
-                Logging.write("Failed to read")
         
     def moveTo(self, x, y):
         commands = []
@@ -583,7 +581,7 @@ class O2Sensor:
         while(value_rec == False):
             self.serial.write(b'M\n')
             time.sleep(1)
-            return_str = self.serial.read_all().decode('utf-8')
+            return_str = self.serial.read_all().decode('utf-8').strip()
             Logging.write(return_str)
             
             if(return_str[:10] == "Low signal"):
@@ -639,6 +637,7 @@ class TempController:
     targetTemp = 0
     peltierPowerLevel = 0
     currentStatus = "O"
+    isReady = False
     
     def setTemp(self, target_temp):
         self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
@@ -669,6 +668,9 @@ class TempController:
         self.peltierPowerLevel = t_parts[2]
         self.currentStatus = t_parts[3]
         
+        if (abs(float(self.currentTemp) - float(self.targetTemp)) < 1):
+            self.isReady = True
+
         sql = "insert into temp_controller values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
         res = cnco2_data.CNCSystemDB.execute(sql)
 
