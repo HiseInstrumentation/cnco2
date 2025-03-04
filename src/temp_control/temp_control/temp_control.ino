@@ -71,6 +71,8 @@ void stop()
 {
   analogWrite(PIN_COOL, 0);
   analogWrite(PIN_HEAT, 0);
+  is_heating = 0;
+  is_cooling = 0;
 }
 
 /*
@@ -82,19 +84,33 @@ void adjustPeltPower()
   pelt_pwr_level = (((int)t * 20) + 155);
 
   pelt_pwr_level = (((int)t * 31) + 100);
-  
-  pelt_pwr_level = min(pelt_pwr_level,255);  
+
+  if(pelt_pwr_level > 255) {
+    pelt_pwr_level = 255;
+  } else if (pelt_pwr_level < 100) {
+    pelt_pwr_level = 100;
+  }
+
 }
 
 void showCurrentStatus() {
   char buff[30];
   char s_target_temp[8];
   char s_current_temp[8];
+  char t_status[2];
     
   dtostrf(current_temp, 6, 2, s_current_temp);
   dtostrf(target_temp, 6, 2, s_target_temp);
 
-  sprintf(buff, "%s\t%s\t%d", s_target_temp, s_current_temp, pelt_pwr_level); 
+  if(is_heating == 1) {
+    strcpy(t_status,"H");
+  } else if (is_cooling == 1) {
+    strcpy(t_status,"C");
+  } else {
+    strcpy(t_status,"O");
+  }
+
+  sprintf(buff, "%s\t%s\t%d\t%s", s_target_temp, s_current_temp, pelt_pwr_level, t_status); 
   Serial.println(buff);
 }
 

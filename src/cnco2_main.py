@@ -17,8 +17,6 @@ if __name__ == '__main__':
         command = CNCO2Sys.getNextCommand()
         
         if command.commandText == "COMP_DISCOVERY:
-            # Find attached components (Must give a green light for 
-            # running and adjusting gantry
             CNCO2Sys.discoverComponents()        
         
         if command.commandText == "COMP_COMMAND":
