@@ -556,7 +556,6 @@ class Gantry:
     def runCommands(self, commands):
         for c in commands:
             self.serial.write(c)
-            Logging.write(c.decode('utf-8'))
             time.sleep(.5)
         
     def reportPosition(self):
