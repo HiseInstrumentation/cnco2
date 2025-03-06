@@ -28,18 +28,19 @@ if __name__ == '__main__':
                 move_y = command.parms.get('y')
                 
                 if move_x:
-                    print("Moving X")
+                    print("Moving X" + str(move_x))
+                    CNCO2Sys.C_Gantry.adjustX(move_x) 
                 
                 if move_y:
-                    print("Moving Y")                
+                    print("Moving Y" + str(move_y))                
+                    CNCO2Sys.C_Gantry.adjustY(move_y) 
             
             if command.parms['command_type'] == 'TEMP_SET':
                 # Set the temperature of the temp controllers
-                CNCO2Sys.TempControllers.setTemp(command.parms['controller_id'], command.parms['target_temp'])
+                CNCO2Sys.C_TempControllers.setTemp(command.parms['controller_id'], command.parms['target_temp'])
                 
-            if command.parms['command_type'] == 'O2_RESET':
-                # Reset the O2 sensor
-                CNCO2Sys.O2Sensor.reset()
+            if command.parms['command_type'] == 'O2_READ':
+                o2_reading = CNCO2Sys.C_O2Sensor.getReading()
             
         # RUN COMMAND
         if command.commandText == "EXECUTE_RUN":
@@ -75,4 +76,4 @@ if __name__ == '__main__':
             gantry.findHome()
             cnco2.Logging.write("Job Complete", True)
         cnco2.Logging.write("Waiting for commands")
-        time.sleep(5)
+        time.sleep(1)

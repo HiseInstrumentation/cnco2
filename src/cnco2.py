@@ -357,7 +357,7 @@ class System:
                 dev.reset_input_buffer()
                 time.sleep(2)
                 response = dev.readline().decode('utf-8').strip()
-                if(response[0:5] == "CNCO2"):
+                if "CNCO2" in response:
                     connected = True
                     device_name = response[6:]
                     Logging.write("Found temp controller at " + port.device + ": " + device_name)
@@ -371,7 +371,10 @@ class System:
                     dev.write(b'?\n')
                     time.sleep(2)
                     response = dev.readline().decode('utf-8').strip()
-                    if(response[0:5] == "<Idle"):
+                    dev.write(b'?\n')
+                    time.sleep(2)
+                    response = dev.readline().decode('utf-8').strip()
+                    if "ok" in response:
                         connected = True
                         Logging.write("Found Gantry at " + port.device)
                         gant = Gantry()
@@ -426,31 +429,39 @@ class Storage:
 
 class Gantry:
     serial = None
-    offset_x = 0
-    offset_y = 0
-    
-    def adjust(self, parms):
-        if(parms.axis == "x"):
-            self.offset_x = parms.offset
-            self.adjustX(parms.offset)
-        if(parms.axis == "y"):
-            self.offset_y = parms.offset
-            self.adjustY(parms.offset)
+    current_x = 0
+    current_y = 0
+    wasHomed = False
             
-    def adjustX(offset):
-        commands = []
-        commands.append(bytes('$J=G91 G21 X'+str(x)+' F2050\n', 'utf-8'))
-        self.runCommands(commands)
+    def adjustX(self, offset):
+        if self.wasHomed:
+            self.current_x = self.current_x + float(offset)
+            commands = []
+            commands.append(bytes('$J=G90 G21 X'+str(self.current_x)+' F2050\n', 'utf-8'))
+            self.runCommands(commands)
+            Logging.write("Moving to X:"+str(self.current_x))
+            self.waitForReady()
+            sql = "update gantry set current_x = '"+str(self.current_x)+"' where device_id = 'GANTRY'"
+            res = cnco2_data.CNCSystemDB.execute(sql)
 
-    def adjustY(offset):
-        commands = []
-        commands.append(bytes('$J=G91 G21 Y'+str(y)+' F2050\n', 'utf-8'))
-        self.runCommands(commands)
+    def adjustY(self, offset):
+        if self.wasHomed:
+            self.current_y = self.current_y + float(offset)
+            commands = []
+            commands.append(bytes('$J=G90 G21 Y'+str(self.current_y)+' F2050\n', 'utf-8'))
+            self.runCommands(commands)
+            Logging.write("Moving to Y:"+str(self.current_y))
+            self.waitForReady()
+            sql = "update gantry set current_y = '"+str(self.current_y)+"' where device_id = 'GANTRY'"
+            res = cnco2_data.CNCSystemDB.execute(sql)
 
     def goHome(self):
-        commands = []
-        commands.append(b'G28\n')
-        self.runCommands(commands)
+        if self.wasHomed:
+            commands = []
+            commands.append(b'G28\n')
+            self.runCommands(commands)
+            self.current_x = 0
+            self.current_y = 0
 
     def waitForReady(self):
         command_complete = False
@@ -469,9 +480,11 @@ class Gantry:
         self.waitForReady()
         sql = "update gantry set current_x = '0', current_y= '0', was_homed = 1 where device_id = 'GANTRY'"
         res = cnco2_data.CNCSystemDB.execute(sql)
+        self.wasHomed = True
+        self.current_x = 0
+        self.current_y = 0
     
     def connect(self, serial_port, baud_rate):
-        # self.serial = serial.Serial(serial_port, baud_rate)
         Logging.write("Connecting to gantry on "+serial_port+" Baud Rate:"+str(baud_rate), True)
         commands = []
         commands.append(b'$0=10.0\n')
@@ -544,15 +557,24 @@ class Gantry:
         res = cnco2_data.CNCSystemDB.getOne("select * from gantry limit 1")
         gp.x_pos = res['current_x']
         gp.y_pos = res['current_y']
+        if self.wasHomed:
+            gp.wasHomed = 1
+        else:
+            gp.wasHomed = 0
+        
+        return gp
         
     def moveTo(self, x, y):
-        commands = []
-        commands.append(bytes('$J=G90 G21 X'+str(x)+' Y'+str(y)+' F2050\n', 'utf-8'))
-        self.runCommands(commands)
-        Logging.write("Moving to X:"+str(x)+" Y:"+str(y))
-        self.waitForReady()
-        sql = "update gantry set current_x = '"+str(x)+"', current_y= '"+str(y)+"' where device_id = 'GANTRY'"
-        res = cnco2_data.CNCSystemDB.execute(sql)
+        if self.wasHomed:
+            self.current_y = y
+            self.current_x = x
+            commands = []
+            commands.append(bytes('$J=G90 G21 X'+str(x)+' Y'+str(y)+' F2050\n', 'utf-8'))
+            self.runCommands(commands)
+            Logging.write("Moving to X:"+str(x)+" Y:"+str(y))
+            self.waitForReady()
+            sql = "update gantry set current_x = '"+str(x)+"', current_y= '"+str(y)+"' where device_id = 'GANTRY'"
+            res = cnco2_data.CNCSystemDB.execute(sql)
         
     def close(self):
         self.gantry_serial.close()		
@@ -560,6 +582,7 @@ class Gantry:
 class GantryPosition:
     x_pos = 0
     y_pos = 0
+    wasHomed = 0
         
 class O2SensorReading:
     o2_pct = ""
@@ -613,8 +636,8 @@ class O2Sensor:
             
             if(return_str[:10] == "Low signal"):
                 return_value.status = "Low Signal"
-                Logging.write("Received Low Signal, waiting 30 seconds", True)
-                time.sleep(30)
+                Logging.write("Received Low Signal, waiting 4 seconds", True)
+                time.sleep(5)
             elif(return_str.strip() == ""):
                 Logging.write("Received no value, waiting 3 seconds", True)
                 time.sleep(3)
