@@ -402,6 +402,7 @@ class System:
                     if(response[0:9] == "ID:Oxygen"):
                         Logging.write("Found O2 at " + port.device)
                         o2sensor = O2Sensor()
+                        o2sensor.connect(port.device, 19200)
                         o2sensor.serial = dev
                         self.C_O2Sensor = o2sensor
 
@@ -614,7 +615,7 @@ class O2Sensor:
         
     def connect(self, serial_port, baud_rate):
         sql = "update o2_sensor set serial = '"+serial_port+"'";
-        cnco2_data.CNCSystemDB.getOne(sql)
+        cnco2_data.CNCSystemDB.execute(sql)
         Logging.write("Connecting to O2 Sensor on "+serial_port+" Baud Rate:"+str(baud_rate), True)
     
     def reportReading(self):

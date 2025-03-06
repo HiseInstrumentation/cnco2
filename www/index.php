@@ -14,17 +14,17 @@
 		<div id='app_content'>
 			<div class='title_bar'>
 				<div class='ip_section'>IP Address: <?= getIpAddress(); ?></div>&nbsp;
-				<div class='menu_bar'><a href = 'help.php' target = '_INSTRUCTIONS'>Instructions</a></div>
+				<div class='menu_bar'>
+                    <input type='submit' value = 'Discover Components' onClick = 'componentDiscover()' />
+                </div>
 			</div>
-			<div id='batch_list'>
-<?php
-				$batches = getAllBatches();
-				foreach($batches as $batch) {
-					print("<div class='batch_entry' onClick='downloadBatchData(\"".$batch->accessKey."\");'><div class='batch_name'>".$batch->name."</div><div class='batch_created'>".$batch->created."</div><div class='batch_access_key' >".$batch->accessKey."</div></div>");
-				}
-?>
+			<div>
 			</div>
 			<div id='work_area'></div>
+            <div id='components'></div>
 		</div>
+        <script>
+            setTimeout(getComponents, 1000);
+        </script>
 	</body>
 </html>
