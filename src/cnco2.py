@@ -288,7 +288,9 @@ class System:
     def initialize(self):
         ip_address = self.getIp()
         cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0, prepared_to_run = 0, ip_address = '"+ip_address+"'")
-        cnco2_data.CNCSystemDB.execute("update gantry set was_homed = 0 where device_id = 'GANTRY'")
+        cnco2_data.CNCSystemDB.execute("update gantry set current_x = 0, current_y = 0, was_homed = 0, serial = ''")
+        cnco2_data.CNCSystemDB.execute("update o2_sensor set serial = '', current_o2 = 0, current_temp = 0, current_pressure = 0")
+        cnco2_data.CNCSystemDB.execute("delete from temp_controller")
 
 
     # This should be called during the execution of a batch so
@@ -365,7 +367,8 @@ class System:
                     tc = TempController()
                     tc.device_id = device_name
                     tc.serial = dev
-                    
+                    tc.connect(port.device, 115200)
+ 
                     self.C_TempControllers.addController(tc)
                 else:
                     dev.write(b'?\n')
@@ -379,6 +382,7 @@ class System:
                         Logging.write("Found Gantry at " + port.device)
                         gant = Gantry()
                         gant.serial = dev
+                        gant.connect(port.device, 115200)
                         self.C_Gantry = gant
                         
             except UnicodeDecodeError:
@@ -429,6 +433,7 @@ class Storage:
 
 class Gantry:
     serial = None
+    serial_name = ""
     current_x = 0
     current_y = 0
     wasHomed = False
@@ -486,6 +491,8 @@ class Gantry:
     
     def connect(self, serial_port, baud_rate):
         Logging.write("Connecting to gantry on "+serial_port+" Baud Rate:"+str(baud_rate), True)
+        sql = "update gantry set serial = '"+serial_port+"'";
+        cnco2_data.CNCSystemDB.execute(sql)
         commands = []
         commands.append(b'$0=10.0\n')
         commands.append(b'$1=255\n')
@@ -599,20 +606,16 @@ class O2SensorReading:
         
 class O2Sensor:
     serial = None
+    serial_name = ""
     currentTemp = 0
     currentO2 = 0
     currentPressure = 0
     
         
     def connect(self, serial_port, baud_rate):
+        sql = "update o2_sensor set serial = '"+serial_port+"'";
+        cnco2_data.CNCSystemDB.getOne(sql)
         Logging.write("Connecting to O2 Sensor on "+serial_port+" Baud Rate:"+str(baud_rate), True)
-        try:
-            self.sensor_serial = serial.Serial(serial_port, baud_rate)
-            return True
-        except serial.serialutil.SerialException:
-            Logging.write("Could not connect to sensor")
-            System.stop()
-            return False
     
     def reportReading(self):
         return_value = O2SensorReading()
@@ -694,6 +697,7 @@ class TempController:
     peltierPowerLevel = 0
     currentStatus = "O"
     isReady = False
+    serial_name = ""
     
     def setTemp(self, target_temp):
         self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
@@ -745,14 +749,9 @@ class TempController:
         
     def connect(self, serial_port, baud_rate):
         Logging.write("Connecting to Temp Controller on "+serial_port+" Baud Rate:"+str(baud_rate), True)
-        try:
-            self.serial = serial.Serial(serial_port, baud_rate)
-            return True
-        except serial.serialutil.SerialException:
-            Logging.write("Could not connect to temp controller")
-            System.stop()
-            return False
-            
+        sql = "insert into temp_controller values ('"+self.device_id+"', '0', '0', '0', '0', '"+serial_port+"') on CONFLICT (device_id) do update set current_temp = '0'"
+        res = cnco2_data.CNCSystemDB.execute(sql)
+           
 class TempStatus:
     deviceId = ""
     targetTemp = 0

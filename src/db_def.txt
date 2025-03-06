@@ -74,7 +74,8 @@ create table temp_controller
     target_temp TEXT,
     current_temp TEXT,
     peltier_power_level TEXT,
-    current_status TEXT
+    current_status TEXT,
+    serial TEXT
 );
 
 create table o2_sensor
@@ -82,20 +83,22 @@ create table o2_sensor
     device_id TEXT UNIQUE,
     current_o2 TEXT,
     current_temp TEXT,
-    current_pressure TEXT
+    current_pressure TEXT,
+    serial TEXT
 );
 
-insert into o2_sensor values ('O2 Sensor', 0, 0, 0);
+insert into o2_sensor values ('O2 Sensor', 0, 0, 0, '');
 
 create table gantry 
 (
     device_id TEXT UNIQUE,
     current_x TEXT,
     current_y TEXT,
-    was_homed INTEGER
+    was_homed INTEGER,
+    serial TEXT
 );
 
-insert into gantry values ('GANTRY',0,0,0);
+insert into gantry values ('GANTRY',0,0,0, '');
 
 
 // cnco2_data.db
