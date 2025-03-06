@@ -258,23 +258,29 @@ class System:
         # Get the next command that has not been executed
         res = cnco2_data.CNCSystemDB.getOne("select * from sys_command where executed = '' order by created limit 1")
         cm = SystemCommand()
-        cm.created = res['created']
-        cm.commandText = res['command_text']
-        cm.status = res['status']
-        cm.executed = res['executed']
-        cm.systemResponse = res['system_response']
-        cm.parameters = res['parameters']
+ 
+        if res != None:
+            cm.created = res['created']
+            cm.commandText = res['command_text']
+            cm.status = res['status']
+            cm.executed = res['executed']
+            cm.systemResponse = res['system_response']
+            cm.parameters = res['parameters']
 
-        if cm.parameters != None:
-            l_parms = {}
-            parms = cm.parameters.split('&')
-            for parm in parms:
-                parm_parts = parm.split('=')
-                p_key = parm_parts[0];
-                p_value = parm_parts[1];
-                l_parms[p_key] = p_value
-                
-            cm.parms = l_parms
+            if cm.parameters != None:
+                l_parms = {}
+                if cm.parameters != "":
+                    parms = cm.parameters.split('&')
+
+                    for parm in parms:
+                        parm_parts = parm.split('=')
+                        p_key = parm_parts[0];
+                        p_value = parm_parts[1];
+                        l_parms[p_key] = p_value
+                    
+                cm.parms = l_parms
+            
+            cnco2_data.CNCSystemDB.execute("update sys_command set executed = CURRENT_TIMESTAMP where executed = '' order by created limit 1")
         
         return cm
     
@@ -532,6 +538,13 @@ class Gantry:
             Logging.write(c.decode('utf-8'))
             time.sleep(.5)
         
+    def reportPosition(self):
+        gp = GantryPosition()
+        
+        res = cnco2_data.CNCSystemDB.getOne("select * from gantry limit 1")
+        gp.x_pos = res['current_x']
+        gp.y_pos = res['current_y']
+        
     def moveTo(self, x, y):
         commands = []
         commands.append(bytes('$J=G90 G21 X'+str(x)+' Y'+str(y)+' F2050\n', 'utf-8'))
@@ -543,6 +556,10 @@ class Gantry:
         
     def close(self):
         self.gantry_serial.close()		
+        
+class GantryPosition:
+    x_pos = 0
+    y_pos = 0
         
 class O2SensorReading:
     o2_pct = ""
@@ -573,6 +590,16 @@ class O2Sensor:
             Logging.write("Could not connect to sensor")
             System.stop()
             return False
+    
+    def reportReading(self):
+        return_value = O2SensorReading()
+
+        res = cnco2_data.CNCSystemDB.getOne("select * from o2_sensor limit 1")
+        return_value.ot_pct = res['current_o2']
+        return_value.temp = res['current_temp']
+        return_value.pressure = res['current_pressure']
+        
+        return return_value
             
     def getReading(self):
         return_value = O2SensorReading()
@@ -596,7 +623,7 @@ class O2Sensor:
                 regex_te = ",[0-9]*.[0-9]*"
                 regex_pr = "[0-9]{4}|[0-9]{3}"
             
-                return_value.o2 = self.currentO2 = re.search(regex_o2, return_str).group()
+                return_value.o2_pct = self.currentO2 = re.search(regex_o2, return_str).group()
                 return_value.temp = self.currentTemp = re.search(regex_te, return_str).group().replace(',', '')
                 return_value.pressure = self.currentPressure = re.search(regex_pr, return_str).group()
                 return_value.status = "O2 Read Successful"
@@ -619,6 +646,8 @@ class TempControllers:
             print(cont.device_id)
             if cont.device_id == device_id:
                 return cont
+                
+        Logging.write("Could not find device: " + device_id)
     
     def getAllDevices(self):
         return self.controllers
@@ -676,6 +705,16 @@ class TempController:
 
         return t_stat
 
+    def reportStatus(self, device_id):
+        ts = TempStatus()
+        res = cnco2_data.CNCSystemDB.getOne("select * from temp_controller where device_id = '"+device_id+"'")
+        ts.deviceId = device_id
+        ts.targetTemp = res['target_temp']
+        ts.currentTemp = res['current_temp']
+        ts.peltierPowerLevel = res['peltier_power_level']
+        ts.current_status = res['current_status']
+        
+        return ts
         
     def connect(self, serial_port, baud_rate):
         Logging.write("Connecting to Temp Controller on "+serial_port+" Baud Rate:"+str(baud_rate), True)
@@ -687,6 +726,13 @@ class TempController:
             System.stop()
             return False
             
+class TempStatus:
+    deviceId = ""
+    targetTemp = 0
+    currentTemp = 0
+    peltierPowerLevel = 0
+    current_status = ""
+
 
 class Logging:    
     def write(message, echo = False ):
@@ -704,7 +750,8 @@ class Logging:
     
 
 def getAbout():
-    version = System.getVersion()
+    sys = System()
+    version = sys.getVersion()
     print("#######################################################")
     print("     CNCO2 V "+version)
     print("     Griffin Lab, 2024")

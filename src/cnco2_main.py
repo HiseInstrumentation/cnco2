@@ -16,25 +16,33 @@ if __name__ == '__main__':
     while True:
         command = CNCO2Sys.getNextCommand()
         
-        if command.commandText == "COMP_DISCOVERY:
-            CNCO2Sys.discoverComponents()        
-        
-        if command.commandText == "COMP_COMMAND":
-            if command.parms['command_type'] == 'ADJUST_GANTRY':
+        if command.commandText == "COMP_DISCOVERY":
+            CNCO2Sys.discoverComponents()
                 
-                # Gantry, move x/y, record offset
-                CNCO2Sys.Gantry.adjust(command.parms['jog_dir'])
+        if command.commandText == "COMP_COMMAND":
+            if command.parms['command_type'] == 'GANTRY_HOME':
+                CNCO2Sys.C_Gantry.findHome()
+                
+            if command.parms['command_type'] == 'ADJUST_GANTRY':
+                move_x = command.parms.get('x')
+                move_y = command.parms.get('y')
+                
+                if move_x:
+                    print("Moving X")
+                
+                if move_y:
+                    print("Moving Y")                
             
-            if command.parms.commandType == 'TEMP_SET':
+            if command.parms['command_type'] == 'TEMP_SET':
                 # Set the temperature of the temp controllers
                 CNCO2Sys.TempControllers.setTemp(command.parms['controller_id'], command.parms['target_temp'])
                 
-            if comand.parms.commandType == 'O2_RESET':
+            if command.parms['command_type'] == 'O2_RESET':
                 # Reset the O2 sensor
                 CNCO2Sys.O2Sensor.reset()
             
         # RUN COMMAND
-        if command.type == "EXECUTE_RUN":
+        if command.commandText == "EXECUTE_RUN":
             parms = command.parms
             
             batch_key = parms.batch_key
@@ -66,5 +74,5 @@ if __name__ == '__main__':
 
             gantry.findHome()
             cnco2.Logging.write("Job Complete", True)
-
-        time.sleep(1)
+        cnco2.Logging.write("Waiting for commands")
+        time.sleep(5)

@@ -7,7 +7,7 @@ if __name__ == '__main__':
 
     CNCO2Sys = cnco2.System()
     CNCO2Sys.discoverComponents()
-    
+    '''
     cont = CNCO2Sys.C_TempControllers.getDeviceById("HEATER 4")
     cont.setTemp(34)
     cont.getStat()
@@ -25,13 +25,13 @@ if __name__ == '__main__':
         
         time.sleep(1)
         
- 
+    '''
     # Gantry
     gantry = CNCO2Sys.C_Gantry
     gantry.findHome()
     
-    for x in range(5):
-        for y in range(5):
+    for x in range(10):
+        for y in range(10):
             r_x = x * 10
             r_y = y * 10
             gantry.moveTo(r_x,r_y)
