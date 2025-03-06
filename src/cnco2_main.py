@@ -5,6 +5,7 @@ import sys
 import sqlite3
 import time
 
+
 if __name__ == '__main__':
     CNCO2Sys = cnco2.System()
     
@@ -36,12 +37,20 @@ if __name__ == '__main__':
                     CNCO2Sys.C_Gantry.adjustY(move_y) 
             
             if command.parms['command_type'] == 'TEMP_SET':
-                # Set the temperature of the temp controllers
                 CNCO2Sys.C_TempControllers.setTemp(command.parms['controller_id'], command.parms['target_temp'])
-                
+               
+            if command.parms['command_type'] == 'TEMP_STAT':
+                CNCO2Sys.C_TempControllers.tempStat(command.parms['controller_id'])
+
+            if command.parms['command_type'] == 'TEMP_STOP':
+                CNCO2Sys.C_TempControllers.stopDevice(command.parms['controller_id'])
+ 
             if command.parms['command_type'] == 'O2_READ':
                 o2_reading = CNCO2Sys.C_O2Sensor.getReading()
-            
+          
+        if command.commandText == "SYS_HALT":
+            sys.exit(0)
+
         # RUN COMMAND
         if command.commandText == "EXECUTE_RUN":
             parms = command.parms

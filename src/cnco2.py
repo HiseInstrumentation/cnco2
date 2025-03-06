@@ -678,7 +678,11 @@ class TempControllers:
     def setTemp(self, device_id, target_temp):
         cont = self.getDeviceById(device_id)
         cont.setTemp(target_temp)
-                
+        
+    def tempStat(self, device_id):
+        cont = self.getDeviceById(device_id)
+        cont.getStat()
+        
     def stopDevice(self, device_id):
         cont = self.getDeviceById(device_id)
         cont.stop()
