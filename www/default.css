@@ -12,68 +12,54 @@ body {
 	width: 98%;
 	background-color: LIGHTBLUE;
 	border-radius: 5px;
-	padding: 5px;
+	padding: 10px;
 	border: solid 1px BLUE;
+}
+
+#work_area {
+	min-height: 400px;
 }
 
 .ip_section {
 	float: left;
 }
 
+.section_title {
+	font-weight: bold;
+	background-color: #DDD;
+}
+
 .menu_bar {
 	float: right;
 }
 
-#batch_list {
-	width:30%;
+#components {
+	min-height: 200px;
+	width: 30%;
 	float: left;
+	border: solid 1px #DDD;
 }
 
-
-.batch_entry  {
-	font-size: 10pt;
-
-	padding:5px;
-	padding-top: 10px;
-	cursor: pointer;
-	border-radius: 5px;
+#system_log {
+	border: solid 1px #DDD;
 }
 
-.batch_entry:hover {
+#main_output {
+	width: 68%;
+	float: right;
+}
+
+table {
+	width: 100%;
+}
+
+table th {
+	text-align: left;
 	background-color: #DDD;
 }
 
-.batch_name {
-	float: left;
-	font-weight: bold;
-}
-
-.batch_created {
-	float: right;
-	font-style: italic;
-}
-
-.batch_access_key {
-	clear: both;
-	width: 100%;
-	text-align: center;
-}
-
-#work_area {
-	float: right;
-	width: 60%;
+table td {
+	border-right: solid 1px #DDD;
 	margin-right: 5px;
-	margin-top: 10px;
 }
 
-td {
-	border: solid 1px #DDD;
-	background: #EEE;
-	font-size: 12px;
-}
-
-th {
-	padding: 3px;
-	background: #000;
-	color: #FFF;
-}

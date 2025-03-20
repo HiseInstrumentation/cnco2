@@ -238,6 +238,10 @@ class SystemCommand:
     executed = ""
     systemResponse = ""
     parameters = ""
+    
+    def setComplete(self, message):
+        cnco2_data.CNCSystemDB.execute("update sys_command set executed = CURRENT_TIMESTAMP, system_response = '"+message+"' where created = '"+self.created+"'")
+
 
 class System:
     components = []     
@@ -280,7 +284,6 @@ class System:
                     
                 cm.parms = l_parms
             
-            cnco2_data.CNCSystemDB.execute("update sys_command set executed = CURRENT_TIMESTAMP where executed = '' order by created limit 1")
         
         return cm
     

@@ -22,6 +22,7 @@ if __name__ == '__main__':
         
         if command.commandText == "COMP_DISCOVERY":
             CNCO2Sys.discoverComponents()
+            command.setComplete('Finished Component Discovery')
                 
         if command.commandText == "COMP_COMMAND":
             if command.parms['command_type'] == 'GANTRY_HOME':
