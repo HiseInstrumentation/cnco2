@@ -51,7 +51,7 @@ if __name__ == '__main__':
  
             if command.parms['command_type'] == 'O2_READ':
                 o2_reading = CNCO2Sys.C_O2Sensor.getReading()
-                command.setComplete('Finished O2 Read: ' + o2_reading)
+                command.setComplete('Finished O2 Read')
 
 
         if command.commandText == "SYS_HALT":
