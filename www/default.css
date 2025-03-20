@@ -44,9 +44,12 @@ body {
 	border: solid 1px #DDD;
 }
 
-#main_output {
+#main {
+	margin-left: 5px;
 	width: 68%;
 	float: right;
+	border: solid 1px #DDD;
+
 }
 
 table {

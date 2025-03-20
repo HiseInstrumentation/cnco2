@@ -76,6 +76,13 @@
 		case 'component_temp_stat':
 		break;
 		case 'component_o2_read':
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=O2_READ')";
+		    $db->query($sql);
+		    sleep(5);
+		    $sql = "select * from o2_sensor";
+		    $res = $db->query($sql);
+		    $row = $res->fetchArray();
+		    print(json_encode($row));
 		break;
 		case "view_data":
 			$key = substr(trim($_POST['batch_access_key']), 0, 32);
