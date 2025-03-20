@@ -1,0 +1,34 @@
+ Sytem Commands:
+
+SYS_INIT
+
+Reinitialize the system, resetting all database system tables.
+
+COMP_DISCOVERY
+
+Poll all connected USB devices to find attached components such as the O2 sensor, gantry and temperature controllers.
+
+SYS_HALT
+
+Forces the main python program to exit
+
+EXECUTE_RUN
+
+Runs the specified batch ID
+
+COMP_COMMAND
+
+Sends a command to the systems. Commands are:
+GANTRY_HOME     Send find home command to gantry.
+ADJUST_GANTRY   Move the gantry relatively 
+- X             mm to move the X axis
+- Y             mm to move the Y axis
+TEMP_SET        Set the target temperature of a temperature controller
+- controller_id ID of the controller (ie "HEAT 1")
+- target_temp   Target temp in C
+TEMP_STAT       Get the status of the controller
+- controller_id ID of the controller
+TEMP_STOP       Turn off the temperature controller
+- controller_id ID of the controller
+O2_READ         Get the current sensor reading from the O2 sensor
+

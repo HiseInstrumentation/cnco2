@@ -16,6 +16,9 @@ if __name__ == '__main__':
 
     while True:
         command = CNCO2Sys.getNextCommand()
+
+        if command.commandText == "SYS_INIT":
+            CNCO2Sys.initialize()
         
         if command.commandText == "COMP_DISCOVERY":
             CNCO2Sys.discoverComponents()
