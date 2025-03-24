@@ -333,12 +333,12 @@ class System:
             d = str(urlopen(url, timeout=10).read())
             ip_address = r.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(d).group(1)
         except  HTTPError as error:
-            Logging.write('HTTP Error: Data not retrieved because %s\nURL: %s', error, url)
+            Logging.write('HTTP Error: Data not retrieved: '+ error)
         except URLError as error:
             if(isinstance(error.reason, timeout)):
                 Logging.write("Error timeout")
             else:
-                Logging.write('URL Error:  Data not retrieved because %s\nURL: %s', error, url)
+                Logging.write('URL Error:  Data not retrieved: ' + error)
      
         self.ipAddress = ip_address
      
@@ -766,7 +766,7 @@ class TempStatus:
 class Logging:    
     def write(message, echo = False ):
         pre_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        log_file = open('cnco2_log.txt', 'a')
+        log_file = open('/home/jhise/cnco2/src/cnco2_log.txt', 'a')
         log_file.write(pre_time+": " + str(message) + "\n")
         if(echo == True):
             print(message)
