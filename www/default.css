@@ -52,6 +52,21 @@ body {
 
 }
 
+.ctl_left {
+	margin:20px;
+	float: left;
+}
+
+.ctl_right {
+	margin:20px;
+	float: right;
+}
+
+.float_clear {
+	clear: both;
+}
+
+
 table {
 	width: 100%;
 }

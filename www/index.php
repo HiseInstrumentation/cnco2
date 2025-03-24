@@ -9,6 +9,7 @@
 		<link rel="stylesheet" href='default.css'>
 		<script type='text/javascript' src = 'js/cnco2.js'></script>
 		<script type='text/javascript' src = 'js/o2_control.js'></script>
+		<script type='text/javascript' src = 'js/temp_control.js'></script>
 	</head>
 
 	<body>

@@ -56,7 +56,7 @@
 		    $res = $db->query($sql);
 		    while($row = $res->fetchArray()) {
 			$temp_count++;
-			print("Temp Controller: ".$row['device_id']."<br />");
+			print("Temp Controller: ".$row['device_id']." <a href = '#' onClick = 'show_temp_control(\"".$row['device_id']."\");'>[CTRL]</a><br />");
 		    }
 		    
 		    if( (($temp_count == 4) && $o2_found && $gantry_found)) {
@@ -74,6 +74,8 @@
 		case 'component_temp_stop':
 		break;
 		case 'component_temp_stat':
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STAT')";
+		    
 		break;
 		case 'component_o2_read':
 		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=O2_READ')";
