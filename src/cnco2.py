@@ -338,7 +338,7 @@ class System:
             if(isinstance(error.reason, timeout)):
                 Logging.write("Error timeout")
             else:
-                Logging.write('URL Error:  Data not retrieved: ' + error)
+                Logging.write('URL Error')
      
         self.ipAddress = ip_address
      
