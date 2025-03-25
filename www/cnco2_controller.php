@@ -86,7 +86,7 @@
 		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
 		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STOP&controller_id=".$controller_id."')";
 		    $db->query($sql);
-		    sleep(5);
+		    sleep(4);
 		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
 		    $res = $db->query($sql);
 		    $row = $res->fetchArray();

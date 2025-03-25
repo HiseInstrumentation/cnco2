@@ -11,6 +11,7 @@ function show_temp_control(device_name)
 	div_body = document.createElement('div');
 	div_body.innerHTML = '';
 	
+	// Target
 	div_target = document.createElement('div');
 	
 		div_target_label = document.createElement('div');
@@ -33,6 +34,30 @@ function show_temp_control(device_name)
 	
 	div_body.appendChild(div_target);
 	
+	// Target Change
+	div_ctarget = document.createElement('div');
+	
+		div_ctarget_label = document.createElement('div');
+		div_ctarget_label.innerHTML = 'Change Target Temperature';
+		div_ctarget_label.classList.add('ctl_left');
+	
+		div_ctarget_input = document.createElement('div');
+		div_ctarget_input.classList.add('ctl_right');
+		
+			text_ctarget_value = document.createElement('input');
+			text_ctarget_value.type = 'text';
+			text_ctarget_value.placeholder = 'Enter in C';
+			text_ctarget_value.id='ctarget_temp_value';
+	
+		div_ctarget_input.appendChild(text_ctarget_value);
+		
+	div_ctarget.appendChild(div_ctarget_label);
+	div_ctarget.appendChild(div_ctarget_input);
+	div_ctarget.classList.add('float_clear');
+	
+	div_body.appendChild(div_ctarget);
+	
+	// CURRENT
 	div_current = document.createElement('div');
 	div_current.classList.add('float_clear');
 	
@@ -55,20 +80,63 @@ function show_temp_control(device_name)
 	
 	div_body.appendChild(div_current);
 	
+	// STATUS
+	div_status = document.createElement('div');
+	div_status.classList.add('float_clear');
+	
+		div_status_label = document.createElement('div');
+		div_status_label.innerHTML = 'Current Status';
+		div_status_label.classList.add('ctl_left');
+		
+		div_status_input = document.createElement('div');
+		div_status_input.classList.add('ctl_right');
+		
+			text_status_value = document.createElement('input');
+			text_status_value.type = 'text';
+			text_status_value.value = '';
+			text_status_value.id='current_status_value';
+			
+		div_status_input.append(text_status_value);
+		
+	div_status.appendChild(div_status_label);
+	div_status.appendChild(div_status_input);
+	
+	div_body.appendChild(div_status);
+		
+	// Power level
+	div_power = document.createElement('div');
+	div_power.classList.add('float_clear');
+	
+		div_power_label = document.createElement('div');
+		div_power_label.innerHTML = 'Current Power Level';
+		div_power_label.classList.add('ctl_left');
+		
+		div_power_input = document.createElement('div');
+		div_power_input.classList.add('ctl_right');
+		
+			text_power_value = document.createElement('input');
+			text_power_value.type = 'text';
+			text_power_value.value = '';
+			text_power_value.id='current_power_value';
+			
+		div_power_input.append(text_power_value);
+		
+	div_power.appendChild(div_power_label);
+	div_power.appendChild(div_power_input);
+	
+	div_body.appendChild(div_power);
+	
 	div_controls = document.createElement('div');
 	div_controls.classList.add('float_clear');
 	
 	div_button_start = document.createElement('id');
 
-	
 		button_start = document.createElement('input');
 		button_start.type = 'button';
 		button_start.value = 'Start';
 	
-
 	div_button_start.appendChild(button_start);
 	div_button_start.classList.add('ctl_left');
-	
 	
 	div_button_stop = document.createElement('div');
 		
@@ -88,7 +156,7 @@ function show_temp_control(device_name)
 	
 	 (function(device_name){
 			button_start.addEventListener("click", function() {
-				start_temp(device_name,document.getElementById('target_temp_value').value);
+				start_temp(device_name,document.getElementById('ctarget_temp_value').value);
 			});
 		})(device_name);
 		
@@ -118,7 +186,6 @@ function start_temp(device_name, target_temp) {
 		
 
 	}
-	target_temp = document.getElementById('target_temp_value').value;
 	
 	var parms = "action=component_temp_set&controller_id="+encodeURIComponent(device_name)+"&target_temp="+target_temp;
 	req.send(parms);
@@ -155,16 +222,32 @@ function get_stat(device_name) {
 		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		req.onload = function() {
 			response = req.responseText;
+			status = 'Off';
 			sens = JSON.parse(response);
+			
+			if(sens.current_status == 'H') {
+				status = 'On: Heating';
+			} else if (sens.current_status == 'C') {
+				status = 'On: Cooling';
+			}
+			
+			power_pct = (sens.peltier_power_level / 255 * 100);
+			if(status == 'Off') {
+				power_pct = 0;
+			}
+			
 			document.getElementById('current_temp_value').value = sens.current_temp;
+			document.getElementById('current_power_value').value = Number((power_pct).toFixed(1)) + '%';
+			document.getElementById('target_temp_value').value = sens.target_temp;
+			
+			document.getElementById('current_status_value').value = status;
 		}
 		var parms = "action=component_temp_stat&controller_id="+encodeURIComponent(device_name);
 		req.send(parms);
 	
-		console.log("timout for stat");
 		setTimeout(function() {
 			get_stat(device_name);
-		}, 10000);
+		}, 5000);
 
 	}
 }
