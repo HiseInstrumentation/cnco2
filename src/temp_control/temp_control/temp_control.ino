@@ -191,7 +191,7 @@ void setup()
   digitalWrite(PIN_ENABLE, HIGH);  // No idea what this does, try to remove
 
   // This string must start with CNCO2 and each temp controller should have a number
-  Serial.println(F("CNCO2 HEATER 4"));
+  Serial.println(F("CNCO2 HEATER 3"));
   delay(1000);
   stop();
 }

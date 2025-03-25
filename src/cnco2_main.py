@@ -42,12 +42,16 @@ if __name__ == '__main__':
             
             if command.parms['command_type'] == 'TEMP_SET':
                 CNCO2Sys.C_TempControllers.setTemp(command.parms['controller_id'], command.parms['target_temp'])
-               
+                command.setComplete('Finished Setting Temp')
+
             if command.parms['command_type'] == 'TEMP_STAT':
                 CNCO2Sys.C_TempControllers.tempStat(command.parms['controller_id'])
+                command.setComplete('Finished Temp Controller Stat')
 
             if command.parms['command_type'] == 'TEMP_STOP':
                 CNCO2Sys.C_TempControllers.stopDevice(command.parms['controller_id'])
+                command.setComplete('Finished Stopping Temp Controller')
+
  
             if command.parms['command_type'] == 'O2_READ':
                 o2_reading = CNCO2Sys.C_O2Sensor.getReading()

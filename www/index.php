@@ -27,13 +27,17 @@
 					<div id='component_details'></div>
 				</div>
 				<div id='main'>
-					<div class='section_title'>Work Space</div>
+					<div class='section_title'>
+						<div class='section_title_caption'>Work Space</div>
+						<div class='section_title_close' id='ws_close'></div>
+						<div class='float_clear'></div>
+					</div>
 					<div id='main_output'></div>
 				</div>
 			</div>
 			<div style='clear: both;'></div>
 			<div id='system_log'>
-				<div class='section_title'>System Log</div>
+				<div class='section_title'>Command Log</div>
 				<div id='system_log_output'>
 					<table id = 'log_table'></table>
 				</div>

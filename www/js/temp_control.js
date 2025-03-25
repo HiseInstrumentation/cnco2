@@ -1,5 +1,7 @@
 function show_temp_control(device_name)
 {
+	addCloseButton();
+	showing_temp = true;
 	mo = document.getElementById('main_output');
 	
 	div_title = document.createElement('div');
@@ -44,6 +46,7 @@ function show_temp_control(device_name)
 			text_current_value = document.createElement('input');
 			text_current_value.type = 'text';
 			text_current_value.value = '';
+			text_current_value.id='current_temp_value';
 			
 		div_current_input.append(text_current_value);
 		
@@ -96,12 +99,14 @@ function show_temp_control(device_name)
 			});
 		})(device_name);
 	console.log(device_name);
+	
+	get_stat(device_name);
 }
 
 function start_temp(device_name, target_temp) {
 	
 	console.log("Starting " + device_name + " at " + target_temp);
-	/*
+	
 	var req = new XMLHttpRequest();
 	req.open("POST", "cnco2_controller.php", true);
 
@@ -110,17 +115,56 @@ function start_temp(device_name, target_temp) {
 		response = req.responseText;
 		console.log(response);
 		sens = JSON.parse(response);
-		document.getElementById('sensor_reading').innerHTML = "<br />Last Reading:<br /><b>O2: </b>" + sens.current_o2 + "<br /><b>Temp: </b>" + sens.current_temp + "<br /><b>Pressure: </b>" + sens.current_pressure;
+		
+
 	}
-	var parms = "action=component_o2_read";
+	target_temp = document.getElementById('target_temp_value').value;
+	
+	var parms = "action=component_temp_set&controller_id="+encodeURIComponent(device_name)+"&target_temp="+target_temp;
 	req.send(parms);
-	*/
+	
 }
 
 function stop_temp(device_name) {
 	console.log("Stopping " + device_name);
+	var req = new XMLHttpRequest();
+	req.open("POST", "cnco2_controller.php", true);
+
+	req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	req.onload = function() {
+		response = req.responseText;
+		console.log(response);
+		sens = JSON.parse(response);
+		
+
+	}
+	target_temp = document.getElementById('target_temp_value').value;
+	
+	var parms = "action=component_temp_stop&controller_id="+encodeURIComponent(device_name);
+	req.send(parms);
 }
 
 function get_stat(device_name) {
-	console.log("getting temp stat");	
+	
+	if(showing_temp) {	
+		console.log("getting temp stat for "+device_name);	
+		
+		var req = new XMLHttpRequest();
+		req.open("POST", "cnco2_controller.php", true);
+
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		req.onload = function() {
+			response = req.responseText;
+			sens = JSON.parse(response);
+			document.getElementById('current_temp_value').value = sens.current_temp;
+		}
+		var parms = "action=component_temp_stat&controller_id="+encodeURIComponent(device_name);
+		req.send(parms);
+	
+		console.log("timout for stat");
+		setTimeout(function() {
+			get_stat(device_name);
+		}, 10000);
+
+	}
 }

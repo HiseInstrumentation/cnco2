@@ -1,3 +1,7 @@
+showing_temp = false;
+showing_o2 = false;
+showing_gantry = false;
+
 function getComponents()
 {
 	var req = new XMLHttpRequest();
@@ -48,6 +52,37 @@ function getCommandStatus()
 	}
 	var parms = "action=command_status";
 	req.send(parms);
+}
+
+function addCloseButton()
+{
+	wscd = document.getElementById('ws_close');
+	fname = 'func_close';
+	
+	cb = document.createElement('a');
+	cb.innerHTML = 'X';
+	
+	 (function(fname){
+		cb.addEventListener("click", function() {
+			closeWorkspace();
+		});
+	})(fname);
+	
+	wscd.appendChild(cb);
+}
+
+function closeWorkspace()
+{
+	mo = document.getElementById('main_output');
+	mo.innerHTML = '';
+	
+	wscd = document.getElementById('ws_close');
+	wscd.innerHTML = '';
+	
+	showing_temp = false;
+	showing_o2 = false;
+	showing_gantry = false;
+
 }
 
 function updateStatus()

@@ -6,6 +6,8 @@
 	if($method == 'POST') {
 	    $action = $_POST['action'];
 	    $db = new SQLite3("../src/cnco2.db");
+	    $db->busyTimeout(10000);
+
 
 	    switch($action) {
 		case 'command_status':
@@ -70,12 +72,35 @@
 		case 'component_gantry_adjust':
 		break;
 		case 'component_temp_set':
+		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
+		    $target_temp = floatval(substr(trim($_POST['target_temp']), 0, 10));
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_SET&controller_id=".$controller_id."&target_temp=".$target_temp."')";
+		    $db->query($sql);
+		    sleep(5);
+		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
+		    $res = $db->query($sql);
+		    $row = $res->fetchArray();
+		    print(json_encode($row));
 		break;
 		case 'component_temp_stop':
+		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STOP&controller_id=".$controller_id."')";
+		    $db->query($sql);
+		    sleep(5);
+		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
+		    $res = $db->query($sql);
+		    $row = $res->fetchArray();
+		    print(json_encode($row));
 		break;
 		case 'component_temp_stat':
-		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STAT')";
-		    
+		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STAT&controller_id=".$controller_id."')";
+		    $db->query($sql);
+		    sleep(5);
+		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
+		    $res = $db->query($sql);
+		    $row = $res->fetchArray();
+		    print(json_encode($row));
 		break;
 		case 'component_o2_read':
 		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=O2_READ')";

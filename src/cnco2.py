@@ -726,18 +726,21 @@ class TempController:
         self.serial.write(b'stat')
         t_stat = self.serial.readline().decode('utf-8').strip()
         t_parts = t_stat.split("\t")
-        self.targetTemp = t_parts[0]
-        self.currentTemp = t_parts[1]
-        self.peltierPowerLevel = t_parts[2]
-        self.currentStatus = t_parts[3]
-        
-        if (abs(float(self.currentTemp) - float(self.targetTemp)) < 1):
-            self.isReady = True
+        if(len(t_parts) == 4):
+            self.targetTemp = t_parts[0]
+            self.currentTemp = t_parts[1]
+            self.peltierPowerLevel = t_parts[2]
+            self.currentStatus = t_parts[3]
+            
+            if (abs(float(self.currentTemp) - float(self.targetTemp)) < 1):
+                self.isReady = True
 
-        sql = "insert into temp_controller values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
-        res = cnco2_data.CNCSystemDB.execute(sql)
+            sql = "insert into temp_controller (device_id, target_temp, current_temp, peltier_power_level, current_status) values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
+            res = cnco2_data.CNCSystemDB.execute(sql)
 
-        return t_stat
+            return t_stat
+        else:
+            return None
 
     def reportStatus(self, device_id):
         ts = TempStatus()
