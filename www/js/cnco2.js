@@ -54,9 +54,17 @@ function getCommandStatus()
 	req.send(parms);
 }
 
+function initializeWorkspace()
+{
+	addCloseButton();
+	mo = document.getElementById('main_output');
+	mo.innerHTML = '';
+}
+
 function addCloseButton()
 {
 	wscd = document.getElementById('ws_close');
+	wscd.innerHTML = '';
 	fname = 'func_close';
 	
 	cb = document.createElement('a');

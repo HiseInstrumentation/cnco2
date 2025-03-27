@@ -51,14 +51,14 @@
 		    
 		    if($row['serial'] != "") {
 			$o2_found = true;
-			print("O2 Sensor: ".$row['serial']." <a href = '#' onClick = 'show_o2_control();'>[CTRL]</a><br />");
+			print("<div class = 'component_button' onClick = 'show_o2_control();'>Sendot O2 Sensor</div>");
 		    }
 		    
 		    $sql = "select * from temp_controller";
 		    $res = $db->query($sql);
 		    while($row = $res->fetchArray()) {
 			$temp_count++;
-			print("Temp Controller: ".$row['device_id']." <a href = '#' onClick = 'show_temp_control(\"".$row['device_id']."\");'>[CTRL]</a><br />");
+			print("<div class = 'component_button' onClick = 'show_temp_control(\"".$row['device_id']."\");'>".$row['device_id']."</div>");
 		    }
 		    
 		    if( (($temp_count == 4) && $o2_found && $gantry_found)) {

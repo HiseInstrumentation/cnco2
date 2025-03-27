@@ -240,7 +240,9 @@ class SystemCommand:
     parameters = ""
     
     def setComplete(self, message):
-        cnco2_data.CNCSystemDB.execute("update sys_command set executed = CURRENT_TIMESTAMP, system_response = '"+message+"' where created = '"+self.created+"'")
+        sql = "update sys_command set executed = CURRENT_TIMESTAMP, system_response = '"+message+"' where created = '"+self.created+"'"
+        cnco2_data.CNCSystemDB.execute(sql)
+        Logging.write(sql)
 
 
 class System:

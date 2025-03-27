@@ -1,9 +1,9 @@
 function show_temp_control(device_name)
 {
-	addCloseButton();
+	initializeWorkspace();
 	showing_temp = true;
 	mo = document.getElementById('main_output');
-	
+
 	div_title = document.createElement('div');
 	div_title.innerHTML = 'Temperature Controller: ' + device_name;
 	mo.appendChild(div_title);
@@ -20,14 +20,11 @@ function show_temp_control(device_name)
 	
 		div_target_input = document.createElement('div');
 		div_target_input.classList.add('ctl_right');
+		div_target_input.id='target_temp_value';
 		
-			text_target_value = document.createElement('input');
-			text_target_value.type = 'text';
-			text_target_value.placeholder = 'Enter in C';
-			text_target_value.id='target_temp_value';
-	
-		div_target_input.appendChild(text_target_value);
-		
+		div_target_input.classList.add('sensor_output');
+		div_target_input.innerHTML = '&nbsp;';
+				
 	div_target.appendChild(div_target_label);
 	div_target.appendChild(div_target_input);
 	div_target.classList.add('float_clear');
@@ -67,13 +64,12 @@ function show_temp_control(device_name)
 		
 		div_current_input = document.createElement('div');
 		div_current_input.classList.add('ctl_right');
+		div_current_input.id='current_temp_value';
 		
-			text_current_value = document.createElement('input');
-			text_current_value.type = 'text';
-			text_current_value.value = '';
-			text_current_value.id='current_temp_value';
-			
-		div_current_input.append(text_current_value);
+		div_current_input.classList.add('sensor_output');
+		div_current_input.innerHTML = '&nbsp;';
+		
+					
 		
 	div_current.appendChild(div_current_label);
 	div_current.appendChild(div_current_input);
@@ -90,13 +86,10 @@ function show_temp_control(device_name)
 		
 		div_status_input = document.createElement('div');
 		div_status_input.classList.add('ctl_right');
+		div_status_input.id='current_status_value';
 		
-			text_status_value = document.createElement('input');
-			text_status_value.type = 'text';
-			text_status_value.value = '';
-			text_status_value.id='current_status_value';
-			
-		div_status_input.append(text_status_value);
+		div_status_input.classList.add('sensor_output');
+		div_status_input.innerHTML = '&nbsp;';
 		
 	div_status.appendChild(div_status_label);
 	div_status.appendChild(div_status_input);
@@ -113,13 +106,10 @@ function show_temp_control(device_name)
 		
 		div_power_input = document.createElement('div');
 		div_power_input.classList.add('ctl_right');
+		div_power_input.id='current_power_value';
 		
-			text_power_value = document.createElement('input');
-			text_power_value.type = 'text';
-			text_power_value.value = '';
-			text_power_value.id='current_power_value';
-			
-		div_power_input.append(text_power_value);
+		div_power_input.classList.add('sensor_output');
+		div_power_input.innerHTML = '&nbsp;';
 		
 	div_power.appendChild(div_power_label);
 	div_power.appendChild(div_power_input);
@@ -236,11 +226,11 @@ function get_stat(device_name) {
 				power_pct = 0;
 			}
 			
-			document.getElementById('current_temp_value').value = sens.current_temp;
-			document.getElementById('current_power_value').value = Number((power_pct).toFixed(1)) + '%';
-			document.getElementById('target_temp_value').value = sens.target_temp;
+			document.getElementById('current_temp_value').innerHTML = sens.current_temp + ' C';
+			document.getElementById('current_power_value').innerHTML = Number((power_pct).toFixed(1)) + '%';
+			document.getElementById('target_temp_value').innerHTML = sens.target_temp + ' C';
 			
-			document.getElementById('current_status_value').value = status;
+			document.getElementById('current_status_value').innerHTML = status;
 		}
 		var parms = "action=component_temp_stat&controller_id="+encodeURIComponent(device_name);
 		req.send(parms);
