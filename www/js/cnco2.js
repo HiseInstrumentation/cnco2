@@ -1,6 +1,7 @@
 showing_temp = false;
 showing_o2 = false;
 showing_gantry = false;
+system_running = false;
 
 function getComponents()
 {
@@ -25,7 +26,7 @@ function getCommandStatus()
 	req.onload = function() {
 		output = JSON.parse(req.responseText);
 		log_table = document.getElementById('log_table');
-		log_table.innerHTML = '<tr><th>Started</th><th>Finished</th><th>Command</th><th>System Reponse</th></tr>';
+		log_table.innerHTML = '<tr><th>Started</th><th>Finished</th><th>Command</th><th>Parameters</th><th>System Reponse</th></tr>';
 		for(i = 0; i < output.length; i++) {
 				log_row = document.createElement('tr');
 				log_row_created = document.createElement('td');
@@ -36,7 +37,10 @@ function getCommandStatus()
 				
 				log_row_command = document.createElement('td');
 				log_row_command.innerHTML = output[i].command_text;
-				
+
+				log_row_parms = document.createElement('td');
+				log_row_parms.innerHTML = output[i].parameters;				
+
 				log_row_response = document.createElement('td');
 				log_row_response.innerHTML = output[i].system_response;
 				
@@ -44,6 +48,7 @@ function getCommandStatus()
 				log_row.appendChild(log_row_created);
 				log_row.appendChild(log_row_executed);
 				log_row.appendChild(log_row_command);
+				log_row.appendChild(log_row_parms);
 				log_row.appendChild(log_row_response);
 				
 				log_table.appendChild(log_row);
@@ -97,7 +102,30 @@ function updateStatus()
 {
 	getComponents();
 	getCommandStatus();
+	getSystemStatus();
 	setTimeout(updateStatus, 1000);
+}
+
+function getSystemStatus() 
+{
+	var req = new XMLHttpRequest();
+	req.open("POST", "cnco2_controller.php", true);
+
+	req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	req.onload = function() {
+		response = JSON.parse(req.responseText);
+		div_status = document.getElementById('system_status');
+		if(response.running == false) {
+			div_status.innerHTML = '[ <b>SYSTEM NOT RUNNING</b> ]';
+			system_running = false;
+		} else {
+			div_status.innerHTML = '[ System Running ]';
+			system_running = true;
+		}
+		
+	}
+	var parms = "action=system_check";
+	req.send(parms);
 }
 
 function componentDiscover()

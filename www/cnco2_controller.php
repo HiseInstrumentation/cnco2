@@ -20,6 +20,7 @@
 			$command_line['created'] = $row['created'];
 			$command_line['executed'] = $row['executed'];
 			$command_line['command_text'] = $row['command_text'];
+			$command_line['parameters'] = $row['parameters'];
 			$command_line['system_response'] = $row['system_response'];
 			
 			$output[] = $command_line;
@@ -42,7 +43,7 @@
 		    
 		    if($row['serial'] != "") {
 			$gantry_found = true;
-			print("Gantry: ".$row['serial']."<br />");
+			print("<div class = 'component_button' onClick = 'show_gantry_control();'>Gantry</div>");
 		    }
 		    
 		    $sql = "select * from o2_sensor";
@@ -67,7 +68,25 @@
 		    
 
 		break;
+		case 'system_check':
+		    $sys_status = array();
+		    
+		    $res = shell_exec("ps ax | grep main");
+		    
+		    if(!stristr($res, 'cnco2_main')) {
+			$sys_status['running'] = false;
+		    } else {
+			$sys_status['running'] = true;
+		    } 
+		    
+		    print(json_encode($sys_status));
+		break;		
 		case 'component_gantry_home':
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=GANTRY_HOME')";
+		    $db->query($sql);
+		    $res = array();
+		    $res['response'] = 'Gantry Homed';
+		    print(json_encode($res));
 		break;
 		case 'component_gantry_adjust':
 		break;

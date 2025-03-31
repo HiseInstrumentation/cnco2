@@ -1,3 +1,13 @@
+function npad_push(u_value)
+{
+		ctl = document.getElementById('ctarget_temp_value');
+		if(u_value == '<') {
+			ctl.value = "";
+		} else {
+			ctl.value = ctl.value + u_value ;
+		}
+}
+
 function show_temp_control(device_name)
 {
 	initializeWorkspace();
@@ -31,28 +41,7 @@ function show_temp_control(device_name)
 	
 	div_body.appendChild(div_target);
 	
-	// Target Change
-	div_ctarget = document.createElement('div');
 	
-		div_ctarget_label = document.createElement('div');
-		div_ctarget_label.innerHTML = 'Change Target Temperature';
-		div_ctarget_label.classList.add('ctl_left');
-	
-		div_ctarget_input = document.createElement('div');
-		div_ctarget_input.classList.add('ctl_right');
-		
-			text_ctarget_value = document.createElement('input');
-			text_ctarget_value.type = 'text';
-			text_ctarget_value.placeholder = 'Enter in C';
-			text_ctarget_value.id='ctarget_temp_value';
-	
-		div_ctarget_input.appendChild(text_ctarget_value);
-		
-	div_ctarget.appendChild(div_ctarget_label);
-	div_ctarget.appendChild(div_ctarget_input);
-	div_ctarget.classList.add('float_clear');
-	
-	div_body.appendChild(div_ctarget);
 	
 	// CURRENT
 	div_current = document.createElement('div');
@@ -119,6 +108,53 @@ function show_temp_control(device_name)
 	div_controls = document.createElement('div');
 	div_controls.classList.add('float_clear');
 	
+// Target Change
+	
+	div_ctarget = document.createElement('div');
+	
+		div_ctarget_label = document.createElement('div');
+		div_ctarget_label.innerHTML = 'Change Target Temperature';
+		div_ctarget_label.classList.add('ctl_left');
+	
+		div_ctarget_input = document.createElement('div');
+		div_ctarget_input.classList.add('ctl_right');
+		
+			text_ctarget_value = document.createElement('input');
+			text_ctarget_value.type = 'text';
+			text_ctarget_value.placeholder = 'Enter in C';
+			text_ctarget_value.id='ctarget_temp_value';
+				
+			npad = document.createElement('div');
+			
+			npad.classList.add('npad');
+			buttons = ["1","2","3","4","5","6","7","8","9","0",".","<"];
+			
+			for(i = 0; i < buttons.length; i++) {
+				d_name = buttons[i];
+				npad_butt = document.createElement('div');	
+				npad_butt.innerHTML = buttons[i];
+				
+				 (function(d_name){
+					npad_butt.addEventListener("click", function() {
+					npad_push(d_name);
+					});
+				})(d_name);
+				
+				
+				npad.appendChild(npad_butt);
+			
+			}
+
+	
+		div_ctarget_input.appendChild(text_ctarget_value);
+		div_ctarget_input.appendChild(npad);
+		
+	div_ctarget.appendChild(div_ctarget_label);
+	div_ctarget.appendChild(div_ctarget_input);
+	div_ctarget.classList.add('float_clear');
+	
+	div_body.appendChild(div_ctarget);	
+	
 	div_button_start = document.createElement('id');
 
 		button_start = document.createElement('input');
@@ -182,6 +218,7 @@ function start_temp(device_name, target_temp) {
 	
 }
 
+
 function stop_temp(device_name) {
 	console.log("Stopping " + device_name);
 	var req = new XMLHttpRequest();
@@ -203,7 +240,7 @@ function stop_temp(device_name) {
 
 function get_stat(device_name) {
 	
-	if(showing_temp) {	
+	if(showing_temp && system_running) {	
 		console.log("getting temp stat for "+device_name);	
 		
 		var req = new XMLHttpRequest();

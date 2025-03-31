@@ -292,6 +292,7 @@ class System:
     # Before any run can be executed, this must be called
     def initialize(self):
         ip_address = self.getIp()
+        cnco2_data.CNCSystemDB.execute("delete from sys_command where executed = ''")
         cnco2_data.CNCSystemDB.execute("update cnco2_system set is_running = 0, prepared_to_run = 0, ip_address = '"+ip_address+"'")
         cnco2_data.CNCSystemDB.execute("update gantry set current_x = 0, current_y = 0, was_homed = 0, serial = ''")
         cnco2_data.CNCSystemDB.execute("update o2_sensor set serial = '', current_o2 = 0, current_temp = 0, current_pressure = 0")
@@ -368,13 +369,19 @@ class System:
                     connected = True
                     device_name = response[6:]
                     Logging.write("Found temp controller at " + port.device + ": " + device_name)
+                    dev_exists = False
                     
-                    tc = TempController()
-                    tc.device_id = device_name
-                    tc.serial = dev
-                    tc.connect(port.device, 115200)
- 
-                    self.C_TempControllers.addController(tc)
+                    for dev in self.C_TempControllers.getAllDevices():
+                        if(dev.device_id == device_name):
+                            dev_exists = True
+                    
+                    if(dev_exists == False):
+                        tc = TempController()
+                        tc.device_id = device_name
+                        tc.serial = dev
+                        tc.connect(port.device, 115200)
+     
+                        self.C_TempControllers.addController(tc)
                 else:
                     dev.write(b'?\n')
                     time.sleep(2)
@@ -673,8 +680,6 @@ class TempControllers:
     
     def getDeviceById(self, device_id):
         for cont in self.controllers:
-            print("Device ID: ", end='')
-            print(cont.device_id)
             if cont.device_id == device_id:
                 return cont
                 
@@ -685,11 +690,13 @@ class TempControllers:
     
     def setTemp(self, device_id, target_temp):
         cont = self.getDeviceById(device_id)
-        cont.setTemp(target_temp)
+        if(cont != None):
+            cont.setTemp(target_temp)
         
     def tempStat(self, device_id):
         cont = self.getDeviceById(device_id)
-        cont.getStat()
+        if(cont != None):
+            cont.getStat()
         
     def stopDevice(self, device_id):
         cont = self.getDeviceById(device_id)
@@ -717,33 +724,39 @@ class TempController:
         response = False
         
         while not response:
-            return_str = self.serial.readline().decode('utf-8').strip()
-            if "ready" in return_str:
-                response = True
-
+            try:
+                return_str = self.serial.readline().decode('utf-8').strip()
+                if "ready" in return_str:
+                    response = True
+            except:
+                continue
+                
             time.sleep(1)
         
         return return_str
         
     def getStat(self):
         self.serial.write(b'stat')
-        t_stat = self.serial.readline().decode('utf-8').strip()
-        t_parts = t_stat.split("\t")
-        if(len(t_parts) == 4):
-            self.targetTemp = t_parts[0]
-            self.currentTemp = t_parts[1]
-            self.peltierPowerLevel = t_parts[2]
-            self.currentStatus = t_parts[3]
-            '''
-            if (abs(float(self.currentTemp) - float(self.targetTemp)) < 1):
-                self.isReady = True
-            '''
+        try:
+            t_stat = self.serial.readline().decode('utf-8').strip()
+            t_parts = t_stat.split("\t")
+            if(len(t_parts) == 4):
+                self.targetTemp = t_parts[0]
+                self.currentTemp = t_parts[1]
+                self.peltierPowerLevel = t_parts[2]
+                self.currentStatus = t_parts[3]
+                '''
+                if (abs(float(self.currentTemp) - float(self.targetTemp)) < 1):
+                    self.isReady = True
+                '''
 
-            sql = "insert into temp_controller (device_id, target_temp, current_temp, peltier_power_level, current_status) values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
-            res = cnco2_data.CNCSystemDB.execute(sql)
+                sql = "insert into temp_controller (device_id, target_temp, current_temp, peltier_power_level, current_status) values ('"+self.device_id+"', '"+self.targetTemp+"', '"+self.currentTemp+"', '"+self.peltierPowerLevel+"', '"+self.currentStatus+"') on CONFLICT (device_id) do update set current_temp = '"+self.currentTemp+"', target_temp = '"+self.targetTemp+"', peltier_power_level = '"+self.peltierPowerLevel+"', current_status = '"+self.currentStatus+"'"
+                res = cnco2_data.CNCSystemDB.execute(sql)
 
-            return t_stat
-        else:
+                return t_stat
+            else:
+                return None
+        except:
             return None
 
     def reportStatus(self, device_id):

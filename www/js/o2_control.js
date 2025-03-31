@@ -31,9 +31,7 @@ function show_o2_control()
 	div_button.appendChild(div_button_button);
 	
 	div_body.appendChild(div_button);
-	
-	mo.appendChild(div_body);
-	
+		
 	div_o2 = document.createElement('div');
 		div_o2_label = document.createElement('div');
 		div_o2_label.innerHTML = 'Oxygen';
@@ -83,10 +81,12 @@ function show_o2_control()
 	div_o2.classList.add('float_clear');
 	div_temp.classList.add('float_clear');
 	div_press.classList.add('float_clear');
+	div_body.classList.add('float_clear');
 
 	mo.appendChild(div_o2);
 	mo.appendChild(div_temp);
 	mo.appendChild(div_press);
+	mo.appendChild(div_body);
 	
 	
 	sensor_reading = document.createElement('div');

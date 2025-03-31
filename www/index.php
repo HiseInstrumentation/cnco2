@@ -10,14 +10,18 @@
 		<script type='text/javascript' src = 'js/cnco2.js'></script>
 		<script type='text/javascript' src = 'js/o2_control.js'></script>
 		<script type='text/javascript' src = 'js/temp_control.js'></script>
+		<script type='text/javascript' src = 'js/gantry_control.js'></script>
+
 	</head>
 
 	<body>
 		<div id='app_content'>
 			<div class='title_bar'>
-				<div class='ip_section'>IP Address: <?= getIpAddress(); ?></div>&nbsp;
 				<div class='menu_bar'>
-					<input type='submit' value = 'Discover Components' onClick = 'componentDiscover()' />
+					<ul>
+						<li>IP Address: <?= getIpAddress(); ?></li>
+						<li><div class='system_status' id = 'system_status'></div></li>
+					</ul>
 				</div>
 			</div>
 			<div style='clear: both;'></div>
@@ -25,6 +29,7 @@
 				<div id='components'>
 					<div class='section_title'>Components</div>
 					<div id='component_details'></div>
+					<div><input type='button' value = 'Discover Components' onClick = 'componentDiscover()' /></div>
 				</div>
 				<div id='main'>
 					<div class='section_title'>
