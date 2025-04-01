@@ -192,7 +192,6 @@ function show_temp_control(device_name)
 				stop_temp(device_name);
 			});
 		})(device_name);
-	console.log(device_name);
 	
 	get_stat(device_name);
 }
@@ -207,7 +206,6 @@ function start_temp(device_name, target_temp) {
 	req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	req.onload = function() {
 		response = req.responseText;
-		console.log(response);
 		sens = JSON.parse(response);
 		
 
@@ -227,7 +225,6 @@ function stop_temp(device_name) {
 	req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	req.onload = function() {
 		response = req.responseText;
-		console.log(response);
 		sens = JSON.parse(response);
 		
 
@@ -241,7 +238,6 @@ function stop_temp(device_name) {
 function get_stat(device_name) {
 	
 	if(showing_temp && system_running) {	
-		console.log("getting temp stat for "+device_name);	
 		
 		var req = new XMLHttpRequest();
 		req.open("POST", "cnco2_controller.php", true);

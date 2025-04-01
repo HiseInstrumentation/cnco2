@@ -22,13 +22,14 @@
 			$command_line['command_text'] = $row['command_text'];
 			$command_line['parameters'] = $row['parameters'];
 			$command_line['system_response'] = $row['system_response'];
+			$command_line['ui_block'] = $row['ui_block'];
 			
 			$output[] = $command_line;
 		    }
 		    print(json_encode($output));
 		break;
 		case 'component_discover':
-		   $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_DISCOVERY', '', '', '')";
+		   $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_DISCOVERY', '', '', '', 1)";
 		   $db->query($sql);
 		   print("");                  
 		break;
@@ -82,7 +83,7 @@
 		    print(json_encode($sys_status));
 		break;		
 		case 'component_gantry_home':
-		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=GANTRY_HOME')";
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=GANTRY_HOME', 1)";
 		    $db->query($sql);
 		    $res = array();
 		    $res['response'] = 'Gantry Homed';
@@ -93,7 +94,7 @@
 		case 'component_temp_set':
 		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
 		    $target_temp = floatval(substr(trim($_POST['target_temp']), 0, 10));
-		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_SET&controller_id=".$controller_id."&target_temp=".$target_temp."')";
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_SET&controller_id=".$controller_id."&target_temp=".$target_temp."', 0)";
 		    $db->query($sql);
 		    sleep(5);
 		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
@@ -103,7 +104,7 @@
 		break;
 		case 'component_temp_stop':
 		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
-		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STOP&controller_id=".$controller_id."')";
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STOP&controller_id=".$controller_id."', 0)";
 		    $db->query($sql);
 		    sleep(4);
 		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
@@ -113,7 +114,7 @@
 		break;
 		case 'component_temp_stat':
 		    $controller_id = substr(trim($_POST['controller_id']), 0, 40);
-		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STAT&controller_id=".$controller_id."')";
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=TEMP_STAT&controller_id=".$controller_id."', 0)";
 		    $db->query($sql);
 		    sleep(5);
 		    $sql = "select * from temp_controller where device_id='".$controller_id."'";
@@ -122,7 +123,7 @@
 		    print(json_encode($row));
 		break;
 		case 'component_o2_read':
-		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=O2_READ')";
+		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=O2_READ', 0)";
 		    $db->query($sql);
 		    sleep(5);
 		    $sql = "select * from o2_sensor";

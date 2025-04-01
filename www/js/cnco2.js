@@ -2,6 +2,38 @@ showing_temp = false;
 showing_o2 = false;
 showing_gantry = false;
 system_running = false;
+ui_blocked = false;
+
+
+function blockUI()
+{
+	if(ui_blocked == false) {
+		console.log("Blocking");
+		sr = document.getElementById('modal_content');
+		sr.innerHTML = '[ Please wait for task to finish. ]';
+		ui_blocked = true;
+
+		m = document.getElementById('myModal');
+		m.style.display = "block";
+
+
+	}
+}
+
+function freeUI()
+{
+	if(ui_blocked == true) {
+		console.log("Freed");
+		sr = document.getElementById('cmd_running');
+		sr.innerHTML = '';
+		ui_blocked = false;
+
+		m = document.getElementById('myModal');
+		m.style.display = "none";
+
+	}
+}
+
 
 function getComponents()
 {
@@ -24,36 +56,51 @@ function getCommandStatus()
 
 	req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	req.onload = function() {
+		unfinished_found = false;
+
 		output = JSON.parse(req.responseText);
 		log_table = document.getElementById('log_table');
 		log_table.innerHTML = '<tr><th>Started</th><th>Finished</th><th>Command</th><th>Parameters</th><th>System Reponse</th></tr>';
 		for(i = 0; i < output.length; i++) {
-				log_row = document.createElement('tr');
-				log_row_created = document.createElement('td');
-				log_row_created.innerHTML = output[i].created;
-				
-				log_row_executed = document.createElement('td');
-				log_row_executed.innerHTML = output[i].executed;
-				
-				log_row_command = document.createElement('td');
-				log_row_command.innerHTML = output[i].command_text;
+			log_row = document.createElement('tr');
+			log_row_created = document.createElement('td');
+			log_row_created.innerHTML = output[i].created;
 
-				log_row_parms = document.createElement('td');
-				log_row_parms.innerHTML = output[i].parameters;				
+			log_row_executed = document.createElement('td');
+			log_row_executed.innerHTML = output[i].executed;
 
-				log_row_response = document.createElement('td');
-				log_row_response.innerHTML = output[i].system_response;
-				
-				
-				log_row.appendChild(log_row_created);
-				log_row.appendChild(log_row_executed);
-				log_row.appendChild(log_row_command);
-				log_row.appendChild(log_row_parms);
-				log_row.appendChild(log_row_response);
-				
-				log_table.appendChild(log_row);
+			log_row_command = document.createElement('td');
+			log_row_command.innerHTML = output[i].command_text;
+
+			log_row_parms = document.createElement('td');
+			log_row_parms.innerHTML = output[i].parameters;
+
+			log_row_response = document.createElement('td');
+			log_row_response.innerHTML = output[i].system_response;
+
+
+			log_row.appendChild(log_row_created);
+			log_row.appendChild(log_row_executed);
+			log_row.appendChild(log_row_command);
+			log_row.appendChild(log_row_parms);
+			log_row.appendChild(log_row_response);
+
+			log_table.appendChild(log_row);
+			if((output[i].executed == "") && (output[i].ui_block == 1)) {
+				unfinished_found = true;
+			}
 		}
-		// document.getElementById('system_log_output').innerHTML = output;
+
+		/*
+		* If we have an unfinished command and if it is a blocking command, show modal.
+		* Otherwise hide modal.
+		*/
+
+		if(unfinished_found) {
+			blockUI();
+		} else {
+			freeUI();
+		}
 	}
 	var parms = "action=command_status";
 	req.send(parms);

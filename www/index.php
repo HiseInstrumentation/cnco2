@@ -11,7 +11,6 @@
 		<script type='text/javascript' src = 'js/o2_control.js'></script>
 		<script type='text/javascript' src = 'js/temp_control.js'></script>
 		<script type='text/javascript' src = 'js/gantry_control.js'></script>
-
 	</head>
 
 	<body>
@@ -24,6 +23,11 @@
 					</ul>
 				</div>
 			</div>
+
+			<div id='myModal' class='modal'>
+				<div id = 'modal_content' class='modal-content'></div>
+			</div>
+
 			<div style='clear: both;'></div>
 			<div id='work_area'>
 				<div id='components'>
