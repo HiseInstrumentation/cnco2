@@ -22,7 +22,7 @@ import cnco2_data
 my_heater = None
 
 class BatchRuns:
-    
+
     def hasRun(self, batch_access_key):
         res = cnco2_data.CNCDataDB.getOne("select count(*) cnt from sample_store where batch_access_key = '"+batch_access_key+"'")
         cnt = res['cnt']
@@ -240,10 +240,9 @@ class SystemCommand:
     parameters = ""
     
     def setComplete(self, message):
-        sql = "update sys_command set executed = CURRENT_TIMESTAMP, system_response = '"+message+"' where created = '"+self.created+"'"
+        # sql = "update sys_command set executed = CURRENT_TIMESTAMP, system_response = '"+message+"' where created = '"+self.created+"'"
+        sql = "update sys_command set executed = CURRENT_TIMESTAMP, system_response = '"+message+"' where command_text = '"+self.commandText+"' and parameters = '"+self.parameters+"' and executed = ''";
         cnco2_data.CNCSystemDB.execute(sql)
-        Logging.write(sql)
-
 
 class System:
     components = []     
@@ -373,6 +372,7 @@ class System:
                     
                     for dev in self.C_TempControllers.getAllDevices():
                         if(dev.device_id == device_name):
+                            dev.serial = dev        # Just update the device
                             dev_exists = True
                     
                     if(dev_exists == False):

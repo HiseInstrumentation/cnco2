@@ -15,8 +15,6 @@ function blockUI()
 
 		m = document.getElementById('myModal');
 		m.style.display = "block";
-
-
 	}
 }
 
@@ -24,13 +22,10 @@ function freeUI()
 {
 	if(ui_blocked == true) {
 		console.log("Freed");
-		sr = document.getElementById('cmd_running');
-		sr.innerHTML = '';
 		ui_blocked = false;
 
 		m = document.getElementById('myModal');
 		m.style.display = "none";
-
 	}
 }
 
@@ -90,11 +85,6 @@ function getCommandStatus()
 				unfinished_found = true;
 			}
 		}
-
-		/*
-		* If we have an unfinished command and if it is a blocking command, show modal.
-		* Otherwise hide modal.
-		*/
 
 		if(unfinished_found) {
 			blockUI();

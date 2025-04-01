@@ -140,7 +140,6 @@ function show_temp_control(device_name)
 					});
 				})(d_name);
 				
-				
 				npad.appendChild(npad_butt);
 			
 			}

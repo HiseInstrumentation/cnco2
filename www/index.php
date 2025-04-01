@@ -18,6 +18,7 @@
 			<div class='title_bar'>
 				<div class='menu_bar'>
 					<ul>
+						<li>Griffin Lab: CNCO2</li>
 						<li>IP Address: <?= getIpAddress(); ?></li>
 						<li><div class='system_status' id = 'system_status'></div></li>
 					</ul>
