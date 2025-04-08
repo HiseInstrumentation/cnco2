@@ -81,7 +81,16 @@
 		    } 
 		    
 		    print(json_encode($sys_status));
-		break;		
+		break;
+		case 'component_gantry_status':
+		    $res = array();
+		    
+		    $sql = "select * from gantry";
+		    $res = $db->query($sql);
+		    $row = $res->fetchArray();
+		    
+		    print(json_encode($row));
+		break;
 		case 'component_gantry_home':
 		    $sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=GANTRY_HOME', 1)";
 		    $db->query($sql);
@@ -89,6 +98,21 @@
 		    $res['response'] = 'Gantry Homed';
 		    print(json_encode($res));
 		break;
+		case 'component_gantry_move':
+		    $move_x = floatval(substr(trim($_POST['x']),0,10));
+		    $move_y = floatval(substr(trim($_POST['y']),0,10));
+		    
+		    if(($move_x >= 0 && $move_x <= 200) && ($move_y >= 0 && $move_y <= 200)) {
+			$sql = "insert into sys_command values ('', CURRENT_TIMESTAMP, 'COMP_COMMAND', '', '', 'command_type=ADJUST_GANTRY&x=".$move_x."&y=".$move_y."', 1)";
+			$db->query($sql);
+			$res = array();
+			$res['response'] = 'Gantry Moving To x:'.$move_x.' y:'.$move_y;
+			print(json_encode($res));
+		    }
+		    
+		    
+		break;
+		
 		case 'component_gantry_adjust':
 		break;
 		case 'component_temp_set':

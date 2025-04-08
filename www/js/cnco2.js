@@ -101,6 +101,9 @@ function initializeWorkspace()
 	addCloseButton();
 	mo = document.getElementById('main_output');
 	mo.innerHTML = '';
+	showing_temp = false;
+	showing_o2 = false;
+	showing_gantry = false;
 }
 
 function addCloseButton()
@@ -128,11 +131,6 @@ function closeWorkspace()
 	
 	wscd = document.getElementById('ws_close');
 	wscd.innerHTML = '';
-	
-	showing_temp = false;
-	showing_o2 = false;
-	showing_gantry = false;
-
 }
 
 function updateStatus()

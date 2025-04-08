@@ -1,6 +1,8 @@
 function show_o2_control()
 {
 	initializeWorkspace();
+	showing_o2 = true;
+
 	mo = document.getElementById('main_output');
 
 	device_name = 'o2_sensor';
