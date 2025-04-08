@@ -453,7 +453,7 @@ class Gantry:
             
     def adjustX(self, offset):
         if self.wasHomed:
-            self.current_x = self.current_x + float(offset)
+            self.current_x = float(offset)
             commands = []
             commands.append(bytes('$J=G90 G21 X'+str(self.current_x)+' F2050\n', 'utf-8'))
             self.runCommands(commands)
@@ -464,7 +464,7 @@ class Gantry:
 
     def adjustY(self, offset):
         if self.wasHomed:
-            self.current_y = self.current_y + float(offset)
+            self.current_y = float(offset)
             commands = []
             commands.append(bytes('$J=G90 G21 Y'+str(self.current_y)+' F2050\n', 'utf-8'))
             self.runCommands(commands)

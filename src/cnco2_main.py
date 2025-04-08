@@ -41,6 +41,9 @@ if __name__ == '__main__':
                 if move_y:
                     print("Moving Y" + str(move_y))                
                     CNCO2Sys.C_Gantry.adjustY(move_y) 
+                    
+                command.setComplete('Finished Moving')
+
             
             if command.parms['command_type'] == 'TEMP_SET':
                 CNCO2Sys.C_TempControllers.setTemp(command.parms['controller_id'], command.parms['target_temp'])
