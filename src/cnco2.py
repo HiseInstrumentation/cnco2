@@ -346,7 +346,10 @@ class System:
      
         return ip_address
 
-
+    def componentsReady(self):
+        # Do we have all components?
+        # Does each component report ready?
+            
 
     def discoverComponents(self):
 

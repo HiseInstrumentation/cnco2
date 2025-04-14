@@ -28,7 +28,6 @@ if __name__ == '__main__':
             if command.parms['command_type'] == 'GANTRY_HOME':
                 CNCO2Sys.C_Gantry.findHome()
                 command.setComplete('Gantry Homed')
-
                 
             if command.parms['command_type'] == 'ADJUST_GANTRY':
                 move_x = command.parms.get('x')
