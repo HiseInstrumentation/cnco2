@@ -1,34 +1,110 @@
-// cnco2.db
-create table template_batch (
+CREATE TABLE template_batch (
 	access_key TEXT,
 	name TEXT,
 	description TEXT
 );
 
-insert into template_batch values
-	('TEMPLATE01', 'Standard Template', 'Template for 4 bay, 48 count sample set');
-
 CREATE TABLE batch (
 	access_key TEXT,
 	name TEXT,
-	description TEXT, 
-	run_count REAL,
-	created TEXT);
-
-create table template_sample_set (
-	t_batch_access_key TEXT,
-	name TEXT,
-	home_x REAL,
-	home_y REAL,
-	row_count INTEGER,
-	col_count INTEGER,
-	row_spacing REAL,
-	col_spacing REAL,
-	ctl_x REAL,
-	ctl_y REAL,
-	blnk_x REAL,
-	blnk_y REAL
+	description TEXT
+	, created TEXT
 );
+
+CREATE TABLE IF NOT EXISTS "template_sample_set" (
+	"t_batch_access_key"	TEXT,
+	"name"	TEXT,
+	"home_x"	REAL,
+	"home_y"	REAL,
+	"row_count"	INTEGER,
+	"col_count"	INTEGER,
+	"row_spacing"	REAL,
+	"col_spacing"	REAL,
+	"ctl_x"	REAL after home_y,
+	"ctl_y"	REAL after ctl_x,
+	"blnk_x"	REAL,
+	"blnk_y"	REAL,
+	"temp_enable"	INTEGER,
+	"temp_target"	REAL, 
+	"temp_port"	TEXT);
+	
+CREATE TABLE IF NOT EXISTS "sample_set" (
+	"batch_access_key"	TEXT,
+	"name"	TEXT,
+	"home_x"	REAL,
+	"home_y"	REAL,
+	"row_count"	INTEGER,
+	"col_count"	INTEGER,
+	"row_spacing"	REAL,
+	"col_spacing"	REAL,
+	"ctl_x"	REAL after home_y,
+	"ctl_y"	REAL after ctl_x,
+	"blnk_x"	REAL,
+	"blnk_y"	REAL,
+	"temp_enable"	INTEGER,
+	"temp_target"	REAL, 
+	"temp_port"	TEXT);
+
+CREATE TABLE cnco2_system (
+	is_running INTEGER default 0,
+	prepared_to_run INTEGER default 0,
+	version TEXT,
+	ip_address TEXT
+);
+
+CREATE TABLE sys_command (
+	executed TEXT,
+	created TEXT,
+	command_text TEXT,
+	status TEXT,
+	system_response TEXT, 
+	parameters TEXT, 
+	ui_block number default 0
+);
+
+create table tray
+(
+	device_id TEXT UNIQUE,
+	home_x NUMBER,
+	home_y NUMBER
+);
+
+insert into tray values ('TRAY 1', 30, 0);
+insert into tray values ('TRAY 2', 100, 20);
+insert into tray values ('TRAY 3', 30, 100);
+insert into tray values ('TRAY 4', 100, 120);
+
+CREATE TABLE temp_controller
+(
+    device_id TEXT UNIQUE,
+    target_temp TEXT,
+    current_temp TEXT,
+    peltier_power_level TEXT,
+    current_status TEXT, 
+    serial TEXT
+);
+
+CREATE TABLE o2_sensor
+(
+    device_id TEXT UNIQUE,
+    current_o2 TEXT,
+    current_temp TEXT,
+    current_pressure TEXT, 
+    serial TEXT
+);
+
+CREATE TABLE gantry 
+(
+    device_id TEXT UNIQUE,
+    current_x TEXT,
+    current_y TEXT,
+    was_homed INTEGER, 
+    serial TEXT
+);
+
+insert into template_batch values
+	('TEMPLATE01', 'Standard Template', 'Template for 4 bay, 48 count sample set');
+
 
 insert into template_sample_set values
 	('TEMPLATE01', 'Temp 1', 10,10,4,4,2,2,5,5,4,4),
@@ -36,67 +112,12 @@ insert into template_sample_set values
 	('TEMPLATE01', 'Temp 3', 40,40,4,4,2,2,35,35,34,34),
 	('TEMPLATE01', 'Temp 4', 40,10,4,4,2,2,35,5,34,4);
 
-CREATE TABLE sample_set (
-	batch_access_key TEXT,
-	name TEXT,
-	home_x REAL,
-	home_y REAL,
-	row_count INTEGER,
-	col_count INTEGER,
-	row_spacing REAL,
-	col_spacing REAL,
-	ctl_x REAL,
-	ctl_y REAL,
-	blnk_x REAL,
-	blnk_y REAL
-);
-	
-create table cnco2_system (
-	is_running INTEGER default 0,
-    prepared_to_run INTEGER default 0,
-    version TEXT,
-    ip_address TEXT
-);
 
 insert into cnco2_system values (0, 0, 'Dev 1', '');
 
-create table sys_command (
-	created TEXT,				// When the command was created
-	command_text TEXT,			// Command + parameters
-	status REAL,				// Status after the command was executed
-	executed TEXT,				// When the command was executed
-	system_response TEXT		// Any reponse from the execution of command
-);
-
-create table temp_controller
-(
-    device_id TEXT UNIQUE,
-    target_temp TEXT,
-    current_temp TEXT,
-    peltier_power_level TEXT,
-    current_status TEXT,
-    serial TEXT
-);
-
-create table o2_sensor
-(
-    device_id TEXT UNIQUE,
-    current_o2 TEXT,
-    current_temp TEXT,
-    current_pressure TEXT,
-    serial TEXT
-);
 
 insert into o2_sensor values ('O2 Sensor', 0, 0, 0, '');
 
-create table gantry 
-(
-    device_id TEXT UNIQUE,
-    current_x TEXT,
-    current_y TEXT,
-    was_homed INTEGER,
-    serial TEXT
-);
 
 insert into gantry values ('GANTRY',0,0,0, '');
 
