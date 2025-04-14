@@ -87,6 +87,18 @@ if __name__ == '__main__':
                 # All cmponents are ready
                 cnco2.Logging.write("Components Initialized")
                 
+                for tcont in CNCO2Sys.C_TempControllers:     # This will only returned what is discovered
+                    for sample_pos in tcont.samplePositions: # Need to generate these during device discovery as well as the labels
+                        if cnco2.System.isRunning():
+                            cnco2.Logging.write("\tSampling: " + sample_pos.label + " at " + str(sample_pos.x) + "," + str(sample_pos.y))
+                            gantry.moveTo(sample_pos.x, sample_pos.y)
+                            tcont.getStat()
+                            current_temp = tcont.currentTemp
+                            reading = o2.getReading()
+                            cnco2.Logging.write("\t"+reading.status)
+                            cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, current_temp, reading.pressure, reading.status)
+
+                '''
                 for ss in batch.sampleSets:
                     for su in ss.execPlan:
                         if cnco2.System.isRunning():
@@ -95,6 +107,8 @@ if __name__ == '__main__':
                             reading = o2.getReading()
                             cnco2.Logging.write("\t"+reading.status)
                             cnco2.Storage().write(batch_access_key, su.x, su.y, su.sampleStatus, reading.o2, reading.temp, reading.pressure, reading.status)
+                '''
+
 
             gantry.findHome()
             cnco2.Logging.write("Job Complete", True)

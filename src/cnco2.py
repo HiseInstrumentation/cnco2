@@ -373,9 +373,9 @@ class System:
                     Logging.write("Found temp controller at " + port.device + ": " + device_name)
                     dev_exists = False
                     
-                    for dev in self.C_TempControllers.getAllDevices():
-                        if(dev.device_id == device_name):
-                            dev.serial = dev        # Just update the device
+                    for device in self.C_TempControllers.getAllDevices():
+                        if(device.device_id == device_name):
+                            device.serial = dev        # Just update the device
                             dev_exists = True
                     
                     if(dev_exists == False):
@@ -383,7 +383,7 @@ class System:
                         tc.device_id = device_name
                         tc.serial = dev
                         tc.connect(port.device, 115200)
-     
+                        tc.initialize()
                         self.C_TempControllers.addController(tc)
                 else:
                     dev.write(b'?\n')
@@ -705,6 +705,16 @@ class TempControllers:
         cont = self.getDeviceById(device_id)
         cont.stop()
 
+class SamplePosition:
+    tray_id = ""
+    x = 0
+    y = 0
+    label = ""
+
+labels_x = ['1','2','3','4','5','6','7','8']
+labels_y = ['A','B','C','D','E','F']
+
+
 class TempController:
     serial = None
     currentTemp = 0
@@ -713,6 +723,26 @@ class TempController:
     currentStatus = "O"
     isReady = False
     serial_name = ""
+    samplePositions = []
+    device_id = ""
+    
+    def initialize(self):
+        # Get tray
+        sql = "select * from tray where device_id = '"+self.device_id+"'"
+        res = cnco2_data.CNCSystemDB.getOne(sql)
+        home_x = res['home_x']
+        home_y = res['home_y']
+        
+        # Calculate the positions and labels
+        for x in range(8):
+            for y in range(6):
+                sp = SamplePosition()
+                sp.x = x*10
+                sp.y = y*10
+                sp.label = labels_x[x] + labels_y[y]
+            
+        
+        return self
     
     def setTemp(self, target_temp):
         self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
