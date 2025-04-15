@@ -746,8 +746,12 @@ class TempController:
         return self
     
     def setTemp(self, target_temp):
-        self.serial.write(bytes('start ' + str(target_temp), 'utf-8'))
+        self.serial.write(bytes('target ' + str(target_temp), 'utf-8'))
         self.waitForReady()
+
+        self.serial.write(bytes('start', 'utf-8'))
+        self.waitForReady()
+        
         Logging.write(self.device_id + ": Setting target temp to " + str(target_temp))
         
     def stop(self):

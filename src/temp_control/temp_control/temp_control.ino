@@ -35,10 +35,15 @@
 
 #define MODE_DEBUG 0
 #define MODE_RUN 1
+#define MODE_FIXED 0
+#define MODE_WAVE 1
 
 String commands;
 float current_temp = 0;
-float target_temp = 0;
+float target_temp = 20;
+float mode = MODE_FIXED;
+float w_period = 360;
+float w_amp = 5;
 int status = STOPPED;
 int op_mode = MODE_RUN;
 
@@ -56,7 +61,11 @@ float rTherm, logrTherm, tempTherm;
 void showUsage()
 {
   Serial.println(F("Usage:"));
-  Serial.println(F("\tstart target_temp_in_C (Starts controller to reach target temp)"));
+  Serial.println(F("\tstart (Starts controller to reach target temp)"));
+  Serial.println(F("\ttarget target_temp_in_C (Set the target temperature)"));
+  Serial.println(F("\tmode [fixed|wave] (Define the operation mode)"));
+  Serial.println(F("\tamp target_amp_in_C (The maximum amplitude of temp change in wave mode)"));
+  Serial.println(F("\tperiod seconds (Seconds between waves in wave mode)"));
   Serial.println(F("\tstop (Stops the controller and returns to ambient temp)"));
   Serial.println(F("\tdebug on (Turns on debug mode)"));
   Serial.println(F("\tdebug off (Turns off debug mode)"));
@@ -94,13 +103,24 @@ void adjustPeltPower()
 }
 
 void showCurrentStatus() {
-  char buff[30];
+  char buff[60];
   char s_target_temp[8];
   char s_current_temp[8];
+  char s_amp[8];
+  char s_period[8];
   char t_status[2];
+  char t_mode[6];
     
   dtostrf(current_temp, 6, 2, s_current_temp);
   dtostrf(target_temp, 6, 2, s_target_temp);
+  dtostrf(w_period, 6, 2, s_period);
+  dtostrf(w_amp, 6, 2, s_amp);
+
+  if(mode == MODE_FIXED) {
+    strcpy(t_mode, "Fixed");
+  } else {
+    strcpy(t_mode, "Wave");    
+  }
 
   if(is_heating == 1) {
     strcpy(t_status,"H");
@@ -110,7 +130,7 @@ void showCurrentStatus() {
     strcpy(t_status,"O");
   }
 
-  sprintf(buff, "%s\t%s\t%d\t%s", s_target_temp, s_current_temp, pelt_pwr_level, t_status); 
+  sprintf(buff, "%s\t%s\t%d\t%s\t%s\t%s\t%s", s_target_temp, s_current_temp, pelt_pwr_level, t_status, s_amp, s_period, t_mode); 
   Serial.println(buff);
 }
 
@@ -206,28 +226,60 @@ void loop()
     commands = Serial.readString();
     commands.trim();
 
-    if (commands.substring(0, 5) == "start") {
+    if (commands == "start") {
+      
+        if(op_mode == MODE_DEBUG) {
+          Serial.println(F("Starting"));
+          Serial.println(F("Targ  \tCurr  \tPwr"));
+        }
+        
+        status = RUNNING;
+        Serial.println(F("ready"));
+      
+    } else if (commands.substring(0, 6) == "target") {
       
       String t_temp;
-      t_temp = commands.substring(6);
+      t_temp = commands.substring(7);
       t_temp.trim();
 
       if (t_temp == "") {
         showUsage();
       } else {
         target_temp = t_temp.toFloat();
-
+      
         if(op_mode == MODE_DEBUG) {
           Serial.print(F("Setting target temp: "));
           Serial.print(t_temp);
           Serial.println(F("C"));
-          Serial.println(F("Starting"));
-          Serial.println(F("Targ  \tCurr  \tPwr"));
         }
-
-        status = RUNNING;
-        Serial.println(F("ready"));
       }
+
+      Serial.println(F("ready"));
+    } else if (commands.substring(0, 4) == "mode") {
+      if(commands.substring(6) == "fixed") {
+        mode = MODE_FIXED;  
+      } else {
+        mode = MODE_WAVE;
+      }
+      Serial.println(F("ready"));
+    } else if (commands.substring(0, 3) == "amp") {
+
+      String t_amp;
+      t_amp = commands.substring(4);
+      t_amp.trim();
+      
+      w_amp = t_amp.toFloat();
+      
+      Serial.println(F("ready"));
+    } else if (commands.substring(0, 6) == "period") {
+
+      String t_period;
+      t_period = commands.substring(7);
+      t_period.trim();
+      
+      w_period = t_period.toFloat();
+      
+      Serial.println(F("ready"));
     } else if (commands == "stop") {
       Serial.println(F("ready"));
       stop();
