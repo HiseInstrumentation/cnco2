@@ -778,7 +778,7 @@ class TempController:
         try:
             t_stat = self.serial.readline().decode('utf-8').strip()
             t_parts = t_stat.split("\t")
-            if(len(t_parts) == 4):
+            if(len(t_parts) == 7):
                 self.targetTemp = t_parts[0]
                 self.currentTemp = t_parts[1]
                 self.peltierPowerLevel = t_parts[2]
